@@ -1,0 +1,12 @@
+[package]
+name = "ash-graphics-shaders"
+version = "0.1.0"
+edition = "2024"
+
+[lints]
+workspace = true
+
+[dependencies]
+spirv-std.workspace = true
+glam.workspace = true
+bytemuck.workspace = true
