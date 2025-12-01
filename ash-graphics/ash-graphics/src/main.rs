@@ -76,7 +76,6 @@ use crate::swapchain::MySwapchainManager;
 use anyhow::{Context, anyhow};
 use ash::util::read_spv;
 use ash_graphics_shaders::ShaderConstants;
-use clap::{Parser, ValueEnum};
 use raw_window_handle::HasDisplayHandle as _;
 use spirv_builder::{MetadataPrintout, SpirvBuilder};
 use std::{
@@ -96,38 +95,8 @@ pub mod graphics;
 pub mod single_command_buffer;
 pub mod swapchain;
 
-// This runner currently doesn't run the `compute` shader example.
-#[derive(Debug, PartialEq, Eq, Copy, Clone, ValueEnum)]
-pub enum RustGPUShader {
-    Simplest,
-    Sky,
-    Mouse,
-}
-
-impl RustGPUShader {
-    fn crate_name(&self) -> &'static str {
-        match self {
-            RustGPUShader::Simplest => "simplest-shader",
-            RustGPUShader::Sky => "sky-shader",
-            RustGPUShader::Mouse => "mouse-shader",
-        }
-    }
-}
-
-#[derive(Debug, Parser)]
-#[command()]
-pub struct Options {
-    #[arg(short, long, default_value = "sky")]
-    shader: RustGPUShader,
-
-    /// Use Vulkan debug layer (requires Vulkan SDK installed)
-    #[arg(short, long)]
-    debug_layer: bool,
-}
-
 pub fn main() -> anyhow::Result<()> {
-    let options = Options::parse();
-    let shader_code = compile_shaders(&options.shader)?;
+    let shader_code = compile_shaders()?;
 
     // runtime setup
     let event_loop = EventLoop::new()?;
@@ -144,7 +113,7 @@ pub fn main() -> anyhow::Result<()> {
     )?;
 
     let extensions = ash_window::enumerate_required_extensions(window.display_handle()?.as_raw())?;
-    let device = MyDevice::new(extensions, &options)?;
+    let device = MyDevice::new(extensions, false)?;
     let mut swapchain = MySwapchainManager::new(device.clone(), window)?;
     let mut renderer = MyRenderer::new(MyRenderPipelineManager::new(
         device.clone(),
@@ -208,7 +177,7 @@ pub fn main() -> anyhow::Result<()> {
                                 recompiling_shaders = true;
                                 let compiler_sender = compiler_sender.clone();
                                 thread::spawn(move || {
-                                    let shader_code = compile_shaders(&options.shader)
+                                    let shader_code = compile_shaders()
                                         .context("Compiling shaders failed")
                                         .unwrap();
                                     compiler_sender.try_send(shader_code).unwrap();
@@ -251,9 +220,9 @@ pub fn main() -> anyhow::Result<()> {
     Ok(())
 }
 
-pub fn compile_shaders(shader: &RustGPUShader) -> anyhow::Result<Vec<u32>> {
+pub fn compile_shaders() -> anyhow::Result<Vec<u32>> {
     let manifest_dir = env!("CARGO_MANIFEST_DIR");
-    let crate_path = [manifest_dir, "..", "..", "shaders", shader.crate_name()]
+    let crate_path = [manifest_dir, "..", "ash-graphics-shaders"]
         .iter()
         .copied()
         .collect::<PathBuf>();

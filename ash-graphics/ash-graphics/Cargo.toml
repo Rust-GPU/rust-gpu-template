@@ -22,8 +22,6 @@ ash.workspace = true
 ash-window.workspace = true
 raw-window-handle.workspace = true
 winit.workspace = true
-cfg-if.workspace = true
 spirv-builder.workspace = true
 anyhow.workspace = true
 bytemuck.workspace = true
-clap = { version = "4.5.53", features = ["derive"] }

@@ -1,4 +1,3 @@
-use crate::Options;
 use anyhow::{Context, anyhow};
 use ash::{ext, khr, vk};
 use std::borrow::Cow;
@@ -30,12 +29,12 @@ impl Deref for MyDevice {
 }
 
 impl MyDevice {
-    pub fn new(extension_names: &[*const c_char], options: &Options) -> anyhow::Result<Arc<Self>> {
+    pub fn new(extension_names: &[*const c_char], debug_layer: bool) -> anyhow::Result<Arc<Self>> {
         unsafe {
             let entry = ash::Entry::load()?;
 
             let instance = {
-                let layer_names: &'static [_] = if options.debug_layer {
+                let layer_names: &'static [_] = if debug_layer {
                     const { &[c"VK_LAYER_KHRONOS_validation".as_ptr()] }
                 } else {
                     &[]
