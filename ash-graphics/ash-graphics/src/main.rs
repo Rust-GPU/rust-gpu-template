@@ -76,8 +76,6 @@ use crate::swapchain::MySwapchainManager;
 use ash::util::read_spv;
 use ash_graphics_shaders::ShaderConstants;
 use raw_window_handle::HasDisplayHandle as _;
-use spirv_builder::{MetadataPrintout, SpirvBuilder};
-use std::{fs::File, path::PathBuf};
 use winit::event_loop::ActiveEventLoop;
 use winit::{
     event::{Event, WindowEvent},
@@ -170,26 +168,7 @@ pub fn main() -> anyhow::Result<()> {
 }
 
 pub fn get_shaders() -> anyhow::Result<Vec<u32>> {
-    let manifest_dir = env!("CARGO_MANIFEST_DIR");
-    let crate_path = [manifest_dir, "..", "ash-graphics-shaders"]
-        .iter()
-        .copied()
-        .collect::<PathBuf>();
-
-    let compile_result = SpirvBuilder::new(crate_path, "spirv-unknown-vulkan1.3")
-        .print_metadata(MetadataPrintout::None)
-        .shader_panic_strategy(spirv_builder::ShaderPanicStrategy::DebugPrintfThenExit {
-            print_inputs: true,
-            print_backtrace: true,
-        })
-        .build()?;
-    let spv_path = compile_result.module.unwrap_single();
-
-    // Assert that we always have these two shaders
-    let shaders = &compile_result.entry_points;
-    assert_eq!(shaders.len(), 2);
-    assert!(shaders.contains(&"main_vs".to_string()));
-    assert!(shaders.contains(&"main_fs".to_string()));
-
-    Ok(read_spv(&mut File::open(spv_path)?)?)
+    // set in the build script
+    const SPV_BYTES: &[u8] = include_bytes!(env!("SHADER_SPV_PATH"));
+    Ok(read_spv(&mut std::io::Cursor::new(SPV_BYTES))?)
 }

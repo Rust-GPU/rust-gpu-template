@@ -1,0 +1,24 @@
+use spirv_builder::{MetadataPrintout, ShaderPanicStrategy, SpirvBuilder};
+use std::path::PathBuf;
+
+pub fn main() -> anyhow::Result<()> {
+    let manifest_dir = env!("CARGO_MANIFEST_DIR");
+    let crate_path = [manifest_dir, "..", "ash-graphics-shaders"]
+        .iter()
+        .copied()
+        .collect::<PathBuf>();
+
+    let mut builder = SpirvBuilder::default();
+    builder.path_to_crate = Some(crate_path);
+    builder.target = Some("spirv-unknown-vulkan1.3".to_string());
+    builder.print_metadata = MetadataPrintout::DependencyOnly;
+    builder.shader_panic_strategy = ShaderPanicStrategy::DebugPrintfThenExit {
+        print_inputs: true,
+        print_backtrace: true,
+    };
+
+    let compile_result = builder.build()?;
+    let spv_path = compile_result.module.unwrap_single();
+    println!("cargo::rustc-env=SHADER_SPV_PATH={}", spv_path.display());
+    Ok(())
+}
