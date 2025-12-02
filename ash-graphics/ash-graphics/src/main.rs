@@ -120,29 +120,17 @@ pub fn main() -> anyhow::Result<()> {
     let start = std::time::Instant::now();
     let mut event_handler =
         move |event: Event<_>, event_loop_window_target: &ActiveEventLoop| match event {
-            Event::AboutToWait => {
-                swapchain.render(|frame| {
-                    let extent = frame.extent;
-                    let push_constants = ShaderConstants {
-                        width: extent.width,
-                        height: extent.height,
-                        time: start.elapsed().as_secs_f32(),
+            Event::AboutToWait => swapchain.render(|frame| {
+                let extent = frame.extent;
+                let push_constants = ShaderConstants {
+                    width: extent.width,
+                    height: extent.height,
+                    time: start.elapsed().as_secs_f32(),
+                };
 
-                        // FIXME(eddyb) implement mouse support for the ash runner.
-                        cursor_x: 0.0,
-                        cursor_y: 0.0,
-                        drag_start_x: 0.0,
-                        drag_start_y: 0.0,
-                        drag_end_x: 0.0,
-                        drag_end_y: 0.0,
-                        mouse_button_pressed: 0,
-                        mouse_button_press_time: [f32::NEG_INFINITY; 3],
-                    };
-
-                    renderer.render_frame(frame, push_constants)?;
-                    Ok(())
-                })
-            }
+                renderer.render_frame(frame, push_constants)?;
+                Ok(())
+            }),
             Event::WindowEvent { event, .. } => {
                 match event {
                     WindowEvent::KeyboardInput {
