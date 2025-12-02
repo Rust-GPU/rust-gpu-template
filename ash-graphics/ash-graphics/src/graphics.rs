@@ -13,10 +13,6 @@ pub struct MyRenderPipelineManager {
     color_out_format: vk::Format,
     shader_code: Vec<u32>,
     pipeline: Option<MyRenderPipeline>,
-
-    // Only used for sky-shader.
-    // NOTE(eddyb) this acts like an integration test for specialization constants.
-    sky_fs_spec_id_0x5007_sun_intensity_extra_spec_const_factor: u32,
     should_recreate: bool,
 }
 
@@ -36,20 +32,8 @@ impl MyRenderPipelineManager {
             color_out_format,
             shader_code,
             pipeline: None,
-            sky_fs_spec_id_0x5007_sun_intensity_extra_spec_const_factor: 100,
             should_recreate: true,
         })
-    }
-
-    #[inline]
-    pub fn set_sky_fs_sun_intensity_factor(&mut self, factor: u32) {
-        self.sky_fs_spec_id_0x5007_sun_intensity_extra_spec_const_factor = factor;
-        self.should_recreate();
-    }
-
-    #[inline]
-    pub fn get_sky_fs_sun_intensity_factor(&self) -> u32 {
-        self.sky_fs_spec_id_0x5007_sun_intensity_extra_spec_const_factor
     }
 
     #[inline]
@@ -106,15 +90,7 @@ impl MyRenderPipelineManager {
                                     module: shader_module,
                                     p_name: c"main_fs".as_ptr(),
                                     stage: vk::ShaderStageFlags::FRAGMENT,
-                                    // NOTE(eddyb) this acts like an integration test for specialization constants.
-                                    p_specialization_info: &vk::SpecializationInfo::default()
-                                        .map_entries(&[vk::SpecializationMapEntry::default()
-                                            .constant_id(0x5007)
-                                            .offset(0)
-                                            .size(4)])
-                                        .data(&u32::to_le_bytes(
-                                            self.sky_fs_spec_id_0x5007_sun_intensity_extra_spec_const_factor,
-                                        )),
+
                                     ..Default::default()
                                 },
                             ],

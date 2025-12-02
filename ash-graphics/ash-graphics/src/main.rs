@@ -187,16 +187,6 @@ pub fn main() -> anyhow::Result<()> {
                                 });
                             }
                         }
-                        winit::keyboard::NamedKey::ArrowUp
-                        | winit::keyboard::NamedKey::ArrowDown => {
-                            let mut factor = renderer.pipeline.get_sky_fs_sun_intensity_factor();
-                            factor = if key == winit::keyboard::NamedKey::ArrowUp {
-                                factor.saturating_add(1)
-                            } else {
-                                factor.saturating_sub(1)
-                            };
-                            renderer.pipeline.set_sky_fs_sun_intensity_factor(factor);
-                        }
                         _ => {}
                     },
                     WindowEvent::Resized(_) => {
