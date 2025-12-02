@@ -41,6 +41,9 @@ jobs:
       - if: ${{ runner.os == 'Linux' }}
         name: Linux - Install native dependencies
         run: sudo apt install libwayland-cursor0 libxkbcommon-dev libwayland-dev
+      - if: ${{ runner.os == 'Windows' && matrix.integration == 'spirv-builder' }}
+        name: Windows - set rustflags to make it compile
+        run: echo "RUSTFLAGS=-Zshare-generics=off" >> "$GITHUB_ENV"
       # just need a random command that forces the installation of rust-toolchain
       # figure out native target triple while we're at it
       - name: install rust-toolchain
