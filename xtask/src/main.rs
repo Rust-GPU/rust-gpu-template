@@ -11,7 +11,9 @@ pub enum Command {
 }
 
 pub fn main() -> anyhow::Result<()> {
-    env_logger::init();
+    env_logger::builder()
+        .filter_level(log::LevelFilter::Info)
+        .init();
     let command = Command::try_parse()?;
     debug!("Command: {command:?}");
     match command {

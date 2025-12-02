@@ -2,7 +2,7 @@ use anyhow::Context;
 use cargo_generate::GenerateArgs;
 use clap::Parser;
 use clap::builder::PossibleValue;
-use log::debug;
+use log::{debug, info};
 use std::collections::HashMap;
 use std::fmt::{Debug, Display, Formatter};
 use std::path::{Path, PathBuf};
@@ -161,7 +161,7 @@ impl Generate {
             let exec = split.next().unwrap();
             let mut cmd = std::process::Command::new(exec);
             cmd.args(split).current_dir(out_dir);
-            debug!("Spawning process: {cmd:?}");
+            info!("Spawning process: {cmd:?}");
             let status = cmd.spawn()?.wait().context("Process spawning failed")?;
             if !status.success() {
                 anyhow::bail!("Process spawned by `--execute` failed");
