@@ -134,19 +134,17 @@ pub fn main() -> anyhow::Result<()> {
                     WindowEvent::KeyboardInput {
                         event:
                             winit::event::KeyEvent {
-                                logical_key: winit::keyboard::Key::Named(key),
+                                logical_key:
+                                    winit::keyboard::Key::Named(winit::keyboard::NamedKey::Escape),
                                 state: winit::event::ElementState::Pressed,
                                 ..
                             },
                         ..
-                    } => match key {
-                        winit::keyboard::NamedKey::Escape => event_loop_window_target.exit(),
-                        _ => {}
-                    },
+                    }
+                    | WindowEvent::CloseRequested => event_loop_window_target.exit(),
                     WindowEvent::Resized(_) => {
                         swapchain.should_recreate();
                     }
-                    WindowEvent::CloseRequested => event_loop_window_target.exit(),
                     _ => {}
                 }
 
