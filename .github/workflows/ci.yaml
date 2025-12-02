@@ -1,0 +1,129 @@
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+  merge_group:
+
+name: CI
+
+# Cancel PR actions on new commits
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref || github.run_id }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    name: Test
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ ubuntu-24.04, windows-2022, macOS-latest ]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: install nextest
+        uses: taiki-e/install-action@v2
+        with:
+          tool: nextest
+      - name: Install Vulkan SDK
+        uses: jakoch/install-vulkan-sdk-action@v1
+        with:
+          vulkan_version: 1.4.321.0
+          install_runtime: true
+          cache: true
+          stripdown: true
+
+          # FIXME(eddyb) consider using lavapipe instead, or even trying both.
+          install_swiftshader: true
+          # install_lavapipe: true
+      - if: ${{ runner.os == 'Linux' }}
+        name: Linux - Install native dependencies
+        run: sudo apt install libwayland-cursor0 libxkbcommon-dev libwayland-dev
+      # just need a random command that forces the installation of rust-toolchain
+      # figure out native target triple while we're at it
+      - name: install rust-toolchain
+        run: echo "TARGET=$(rustc --print host-tuple)" >> "$GITHUB_ENV"
+      - name: xtask cargo fetch --locked
+        run: cd xtask && cargo fetch --locked --target $TARGET
+      - name: xtask build
+        run: cd xtask && cargo build
+      - name: xtask generate
+        run: cargo xtask generate
+      - name: cargo fetch --locked
+        run: cargo xtask generate -x "cargo fetch --locked --target $TARGET"
+      - name: cargo build
+        run: cargo xtask generate -x "cargo build"
+      - name: cargo test
+        run: cargo xtask generate -x "cargo nextest run"
+
+  # This allows us to have a single job we can branch protect on, rather than needing
+  # to update the branch protection rules when the test matrix changes
+  test_success:
+    runs-on: ubuntu-24.04
+    needs: [test, lint]
+    # Hack for buggy GitHub Actions behavior with skipped checks: https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/collaborating-on-repositories-with-code-quality-features/troubleshooting-required-status-checks#handling-skipped-but-required-checks
+    if: ${{ always() }}
+    steps:
+      # Another hack is to actually check the status of the dependencies or else it'll fall through
+      - run: |
+          echo "Checking statuses..."
+          [[ "${{ needs.test.result }}" == "success" ]] || exit 1
+          [[ "${{ needs.xtask-test.result }}" == "success" ]] || exit 1
+          [[ "${{ needs.lint.result }}" == "success" ]] || exit 1
+
+  xtask-test:
+    name: xtask test
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - name: install nextest
+        uses: taiki-e/install-action@v2
+        with:
+          tool: nextest
+      - if: ${{ runner.os == 'Linux' }}
+        name: Linux - Install native dependencies
+        run: sudo apt install libwayland-cursor0 libxkbcommon-dev libwayland-dev
+      # just need a random command that forces the installation of rust-toolchain
+      # figure out native target triple while we're at it
+      - name: install rust-toolchain
+        run: echo "TARGET=$(rustc --print host-tuple)" >> "$GITHUB_ENV"
+      - name: xtask cargo fetch --locked
+        run: cd xtask && cargo fetch --locked --target $TARGET
+      - name: xtask build
+        run: cd xtask && cargo build
+      - name: xtask test
+        run: cd xtask && cargo nextest run
+      - name: xtask fmt
+        run: cd xtask && cargo fmt --all -- --check
+      - name: xtask clippy
+        run: cd xtask && cargo clippy --all-targets -- -D warnings
+
+  lint:
+    name: Lint
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - if: ${{ runner.os == 'Linux' }}
+        name: Linux - Install native dependencies
+        run: sudo apt install libwayland-cursor0 libxkbcommon-dev libwayland-dev
+      # just need a random command that forces the installation of rust-toolchain
+      # figure out native target triple while we're at it
+      - name: install rust-toolchain
+        run: echo "TARGET=$(rustc --print host-tuple)" >> "$GITHUB_ENV"
+      - name: xtask cargo fetch --locked
+        run: cd xtask && cargo fetch --locked
+      - name: xtask build
+        run: cd xtask && cargo build
+      - name: xtask generate
+        run: cargo xtask generate
+      - name: cargo fetch --locked
+        run: cargo xtask generate -x "cargo fetch --locked"
+      - name: fmt
+        run: cargo xtask generate -x "cargo fmt --all -- --check"
+      - name: clippy
+        run: cargo xtask generate -x "cargo clippy --all-targets -- -D warnings"
+
+defaults:
+  run:
+    shell: bash
