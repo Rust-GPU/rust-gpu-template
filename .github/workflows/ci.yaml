@@ -50,8 +50,9 @@ jobs:
         run: cd xtask && cargo build
       - name: xtask generate
         run: cargo xtask generate
-      - name: cargo fetch --locked
-        run: cargo xtask generate -x "cargo fetch --locked --target $TARGET"
+        # no --locked, templates need to generate their lockfile
+      - name: cargo fetch
+        run: cargo xtask generate -x "cargo fetch --target $TARGET"
       - name: cargo build
         run: cargo xtask generate -x "cargo build"
       - name: cargo test
@@ -117,8 +118,9 @@ jobs:
         run: cd xtask && cargo build
       - name: xtask generate
         run: cargo xtask generate
-      - name: cargo fetch --locked
-        run: cargo xtask generate -x "cargo fetch --locked"
+        # no --locked, templates need to generate their lockfile
+      - name: cargo fetch
+        run: cargo xtask generate -x "cargo fetch"
       - name: fmt
         run: cargo xtask generate -x "cargo fmt --all -- --check"
       - name: clippy
