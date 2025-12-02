@@ -154,17 +154,23 @@ impl Generate {
         Ok(out_dir)
     }
 
-    fn execute(&self, out_dir: &Path) -> anyhow::Result<()> {
+    fn execute<'a>(&self, out_dirs: impl Iterator<Item = &'a Path>) -> anyhow::Result<()> {
         if let Some(execute) = &self.execute {
             let mut split = execute.split(" ");
             // split iterator has at least one entry
             let exec = split.next().unwrap();
-            let mut cmd = std::process::Command::new(exec);
-            cmd.args(split).current_dir(out_dir);
-            info!("Spawning process: {cmd:?}");
-            let status = cmd.spawn()?.wait().context("Process spawning failed")?;
-            if !status.success() {
-                anyhow::bail!("Process spawned by `--execute` failed");
+            let args = split.collect::<Vec<_>>();
+
+            let mut success = true;
+            for out_dir in out_dirs {
+                let mut cmd = std::process::Command::new(exec);
+                cmd.args(args.iter()).current_dir(out_dir);
+                info!("Spawning process: {cmd:?}");
+                let status = cmd.spawn()?.wait().context("Process spawning failed")?;
+                success &= status.success();
+            }
+            if !success {
+                anyhow::bail!("Some processes spawned by `--execute` failed");
             }
         }
         Ok(())
@@ -180,9 +186,7 @@ impl Generate {
                 Ok((variant, out_dir))
             })
             .collect::<anyhow::Result<Vec<_>>>()?;
-        for (_, out_dir) in &results {
-            self.execute(out_dir)?;
-        }
+        self.execute(results.iter().map(|(_, a)| a.as_path()))?;
         Ok(())
     }
 }
