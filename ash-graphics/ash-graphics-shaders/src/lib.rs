@@ -1,7 +1,10 @@
 #![no_std]
 
 use bytemuck::{Pod, Zeroable};
-use glam::{Vec4, vec4};
+use core::f32::consts::PI;
+use glam::{Vec3, Vec4, vec2, vec3};
+#[cfg(target_arch = "spirv")]
+use spirv_std::num_traits::Float;
 use spirv_std::spirv;
 
 #[derive(Copy, Clone, Pod, Zeroable)]
@@ -13,20 +16,21 @@ pub struct ShaderConstants {
 }
 
 #[spirv(fragment)]
-pub fn main_fs(output: &mut Vec4) {
-    *output = vec4(1.0, 0.0, 0.0, 1.0);
+pub fn main_fs(vtx_color: Vec3, output: &mut Vec4) {
+    *output = Vec4::from((vtx_color, 1.));
 }
 
 #[spirv(vertex)]
 pub fn main_vs(
     #[spirv(vertex_index)] vert_id: i32,
-    #[spirv(push_constant)] _constants: &ShaderConstants,
-    #[spirv(position, invariant)] out_pos: &mut Vec4,
+    #[spirv(push_constant)] constants: &ShaderConstants,
+    #[spirv(position)] vtx_pos: &mut Vec4,
+    vtx_color: &mut Vec3,
 ) {
-    *out_pos = vec4(
-        (vert_id - 1) as f32,
-        ((vert_id & 1) * 2 - 1) as f32,
-        0.0,
-        1.0,
-    );
+    let speed = 0.4;
+    let time = constants.time * speed + vert_id as f32 * (2. * PI * 120. / 360.);
+    let position = vec2(f32::sin(time), f32::cos(time));
+    *vtx_pos = Vec4::from((position, 0.0, 1.0));
+
+    *vtx_color = [vec3(1., 0., 0.), vec3(0., 1., 0.), vec3(0., 0., 1.)][vert_id as usize % 3];
 }
