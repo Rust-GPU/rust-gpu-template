@@ -1,1 +1,3 @@
 [template]
+ignore = ["target"]
+exclude = ["target"]
