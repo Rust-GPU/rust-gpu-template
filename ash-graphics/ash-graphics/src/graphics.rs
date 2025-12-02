@@ -74,27 +74,26 @@ impl MyRenderPipelineManager {
                 None,
             )?;
 
-            let mut pipelines =
-                self
-                    .device
-                    .create_graphics_pipelines(vk::PipelineCache::null(), &[vk::GraphicsPipelineCreateInfo::default()
-                        .stages(
-                            &[
-                                vk::PipelineShaderStageCreateInfo {
-                                    module: shader_module,
-                                    p_name: c"main_vs".as_ptr(),
-                                    stage: vk::ShaderStageFlags::VERTEX,
-                                    ..Default::default()
-                                },
-                                vk::PipelineShaderStageCreateInfo {
-                                    module: shader_module,
-                                    p_name: c"main_fs".as_ptr(),
-                                    stage: vk::ShaderStageFlags::FRAGMENT,
+            let mut pipelines = self
+                .device
+                .create_graphics_pipelines(
+                    vk::PipelineCache::null(),
+                    &[vk::GraphicsPipelineCreateInfo::default()
+                        .stages(&[
+                            vk::PipelineShaderStageCreateInfo {
+                                module: shader_module,
+                                p_name: c"main_vs".as_ptr(),
+                                stage: vk::ShaderStageFlags::VERTEX,
+                                ..Default::default()
+                            },
+                            vk::PipelineShaderStageCreateInfo {
+                                module: shader_module,
+                                p_name: c"main_fs".as_ptr(),
+                                stage: vk::ShaderStageFlags::FRAGMENT,
 
-                                    ..Default::default()
-                                },
-                            ],
-                        )
+                                ..Default::default()
+                            },
+                        ])
                         .vertex_input_state(&vk::PipelineVertexInputStateCreateInfo::default())
                         .input_assembly_state(&vk::PipelineInputAssemblyStateCreateInfo {
                             topology: vk::PrimitiveTopology::TRIANGLE_LIST,
@@ -111,23 +110,24 @@ impl MyRenderPipelineManager {
                         })
                         .depth_stencil_state(&vk::PipelineDepthStencilStateCreateInfo::default())
                         .color_blend_state(
-                            &vk::PipelineColorBlendStateCreateInfo::default()
-                                .attachments(
-                                    &[vk::PipelineColorBlendAttachmentState {
-                                        blend_enable: 0,
-                                        src_color_blend_factor: vk::BlendFactor::SRC_COLOR,
-                                        dst_color_blend_factor: vk::BlendFactor::ONE_MINUS_DST_COLOR,
-                                        color_blend_op: vk::BlendOp::ADD,
-                                        src_alpha_blend_factor: vk::BlendFactor::ZERO,
-                                        dst_alpha_blend_factor: vk::BlendFactor::ZERO,
-                                        alpha_blend_op: vk::BlendOp::ADD,
-                                        color_write_mask: vk::ColorComponentFlags::RGBA,
-                                    }],
-                                ),
+                            &vk::PipelineColorBlendStateCreateInfo::default().attachments(&[
+                                vk::PipelineColorBlendAttachmentState {
+                                    blend_enable: 0,
+                                    src_color_blend_factor: vk::BlendFactor::SRC_COLOR,
+                                    dst_color_blend_factor: vk::BlendFactor::ONE_MINUS_DST_COLOR,
+                                    color_blend_op: vk::BlendOp::ADD,
+                                    src_alpha_blend_factor: vk::BlendFactor::ZERO,
+                                    dst_alpha_blend_factor: vk::BlendFactor::ZERO,
+                                    alpha_blend_op: vk::BlendOp::ADD,
+                                    color_write_mask: vk::ColorComponentFlags::RGBA,
+                                },
+                            ]),
                         )
                         .dynamic_state(
-                            &vk::PipelineDynamicStateCreateInfo::default()
-                                .dynamic_states(&[vk::DynamicState::VIEWPORT, vk::DynamicState::SCISSOR]),
+                            &vk::PipelineDynamicStateCreateInfo::default().dynamic_states(&[
+                                vk::DynamicState::VIEWPORT,
+                                vk::DynamicState::SCISSOR,
+                            ]),
                         )
                         .viewport_state(
                             &vk::PipelineViewportStateCreateInfo::default()
@@ -135,9 +135,14 @@ impl MyRenderPipelineManager {
                                 .viewport_count(1),
                         )
                         .layout(pipeline_layout)
-                        .push_next(&mut vk::PipelineRenderingCreateInfo::default().color_attachment_formats(&[self.color_out_format]))
-                    ], None).map_err(|(_, e)| e)
-                    .context("Unable to create graphics pipeline")?;
+                        .push_next(
+                            &mut vk::PipelineRenderingCreateInfo::default()
+                                .color_attachment_formats(&[self.color_out_format]),
+                        )],
+                    None,
+                )
+                .map_err(|(_, e)| e)
+                .context("Unable to create graphics pipeline")?;
 
             // A single `pipeline_info` results in a single pipeline.
             assert_eq!(pipelines.len(), 1);
