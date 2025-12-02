@@ -56,8 +56,9 @@ jobs:
         run: cargo xtask generate ${{ matrix.integration }} -x "cargo fetch --target $TARGET"
       - name: cargo build
         run: cargo xtask generate ${{ matrix.integration }} -x "cargo build"
+        # graphics templates have no tests by default
       - name: cargo test
-        run: cargo xtask generate ${{ matrix.integration }} -x "cargo nextest run"
+        run: cargo xtask generate ${{ matrix.integration }} -x "cargo nextest run --no-tests warn"
 
   # This allows us to have a single job we can branch protect on, rather than needing
   # to update the branch protection rules when the test matrix changes
