@@ -89,6 +89,8 @@ jobs:
       # figure out native target triple while we're at it
       - name: install rust-toolchain
         run: echo "TARGET=$(rustc --print host-tuple)" >> "$GITHUB_ENV"
+      - name: Install rustup components
+        run: rustup component add rustfmt clippy
       - name: xtask cargo fetch --locked
         run: cd xtask && cargo fetch --locked --target $TARGET
       - name: xtask build
@@ -112,6 +114,8 @@ jobs:
       # figure out native target triple while we're at it
       - name: install rust-toolchain
         run: echo "TARGET=$(rustc --print host-tuple)" >> "$GITHUB_ENV"
+      - name: Install rustup components
+        run: rustup component add rustfmt clippy
       - name: xtask cargo fetch --locked
         run: cd xtask && cargo fetch --locked
       - name: xtask build
