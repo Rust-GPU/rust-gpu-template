@@ -247,6 +247,7 @@ impl ActiveSwapchain {
 impl Drop for MySwapchainManager {
     fn drop(&mut self) {
         unsafe {
+            self.device.device_wait_idle().ok();
             self.sync.destroy(&self.device);
             if let Some(active) = self.active.as_ref() {
                 active.destroy_image_views(&self.device);
