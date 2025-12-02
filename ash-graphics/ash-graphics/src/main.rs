@@ -73,17 +73,11 @@
 use crate::device::MyDevice;
 use crate::graphics::{MyRenderPipelineManager, MyRenderer};
 use crate::swapchain::MySwapchainManager;
-use anyhow::{Context, anyhow};
 use ash::util::read_spv;
 use ash_graphics_shaders::ShaderConstants;
 use raw_window_handle::HasDisplayHandle as _;
 use spirv_builder::{MetadataPrintout, SpirvBuilder};
-use std::{
-    fs::File,
-    path::PathBuf,
-    sync::mpsc::{TryRecvError, sync_channel},
-    thread,
-};
+use std::{fs::File, path::PathBuf};
 use winit::event_loop::ActiveEventLoop;
 use winit::{
     event::{Event, WindowEvent},
@@ -96,7 +90,6 @@ pub mod single_command_buffer;
 pub mod swapchain;
 
 pub fn main() -> anyhow::Result<()> {
-    let shader_code = compile_shaders()?;
     let enable_debug_layer = std::env::var("DEBUG_LAYER")
         .map(|e| !(e == "0" || e == "false"))
         .unwrap_or(false);
@@ -121,26 +114,13 @@ pub fn main() -> anyhow::Result<()> {
     let mut renderer = MyRenderer::new(MyRenderPipelineManager::new(
         device.clone(),
         swapchain.surface_format.format,
-        shader_code,
+        get_shaders()?,
     )?)?;
 
-    let mut recompiling_shaders = false;
     let start = std::time::Instant::now();
-    let (compiler_sender, compiler_receiver) = sync_channel::<Vec<u32>>(1);
     let mut event_handler =
         move |event: Event<_>, event_loop_window_target: &ActiveEventLoop| match event {
             Event::AboutToWait => {
-                match compiler_receiver.try_recv() {
-                    Err(TryRecvError::Empty) => (),
-                    Ok(shader_code) => {
-                        recompiling_shaders = false;
-                        renderer.pipeline.set_shader_code(shader_code);
-                    }
-                    Err(TryRecvError::Disconnected) => {
-                        return Err(anyhow!("compiler receiver disconnected unexpectedly"));
-                    }
-                };
-
                 swapchain.render(|frame| {
                     let extent = frame.extent;
                     let push_constants = ShaderConstants {
@@ -175,18 +155,6 @@ pub fn main() -> anyhow::Result<()> {
                         ..
                     } => match key {
                         winit::keyboard::NamedKey::Escape => event_loop_window_target.exit(),
-                        winit::keyboard::NamedKey::F5 => {
-                            if !recompiling_shaders {
-                                recompiling_shaders = true;
-                                let compiler_sender = compiler_sender.clone();
-                                thread::spawn(move || {
-                                    let shader_code = compile_shaders()
-                                        .context("Compiling shaders failed")
-                                        .unwrap();
-                                    compiler_sender.try_send(shader_code).unwrap();
-                                });
-                            }
-                        }
                         _ => {}
                     },
                     WindowEvent::Resized(_) => {
@@ -213,7 +181,7 @@ pub fn main() -> anyhow::Result<()> {
     Ok(())
 }
 
-pub fn compile_shaders() -> anyhow::Result<Vec<u32>> {
+pub fn get_shaders() -> anyhow::Result<Vec<u32>> {
     let manifest_dir = env!("CARGO_MANIFEST_DIR");
     let crate_path = [manifest_dir, "..", "ash-graphics-shaders"]
         .iter()
