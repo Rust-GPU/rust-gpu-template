@@ -10,10 +10,12 @@ repository.workspace = true
 [lints]
 workspace = true
 
+{% if integration_type == "spirv-builder" -%}
 [features]
 default = ["use-compiled-tools"]
 use-installed-tools = ["spirv-builder/use-installed-tools"]
 use-compiled-tools = ["spirv-builder/use-compiled-tools"]
+{% endif -%}
 
 [dependencies]
 ash-graphics-shaders = { path = "../ash-graphics-shaders" }
@@ -26,5 +28,10 @@ anyhow.workspace = true
 bytemuck.workspace = true
 
 [build-dependencies]
+{% if integration_type == "spirv-builder" -%}
 spirv-builder.workspace = true
+{% endif -%}
+{% if integration_type == "cargo-gpu" -%}
+cargo-gpu.workspace = true
+{% endif -%}
 anyhow.workspace = true
