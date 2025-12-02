@@ -51,11 +51,11 @@ jobs:
       - name: xtask generate
         run: cargo xtask generate
       - name: cargo fetch --locked
-        run: cargo xtask generate cargo fetch --locked --target $TARGET
+        run: cargo xtask generate -x "cargo fetch --locked --target $TARGET"
       - name: cargo build
-        run: cargo xtask generate cargo build
+        run: cargo xtask generate -x "cargo build"
       - name: cargo test
-        run: cargo xtask generate cargo nextest run
+        run: cargo xtask generate -x "cargo nextest run"
 
   # This allows us to have a single job we can branch protect on, rather than needing
   # to update the branch protection rules when the test matrix changes
@@ -118,11 +118,11 @@ jobs:
       - name: xtask generate
         run: cargo xtask generate
       - name: cargo fetch --locked
-        run: cargo xtask generate cargo fetch --locked
+        run: cargo xtask generate -x "cargo fetch --locked"
       - name: fmt
-        run: cargo xtask generate cargo fmt --all -- --check
+        run: cargo xtask generate -x "cargo fmt --all -- --check"
       - name: clippy
-        run: cargo xtask generate cargo clippy --all-targets -- -D warnings
+        run: cargo xtask generate -x "cargo clippy --all-targets -- -D warnings"
 
 defaults:
   run:
