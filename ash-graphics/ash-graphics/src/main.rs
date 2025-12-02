@@ -97,6 +97,9 @@ pub mod swapchain;
 
 pub fn main() -> anyhow::Result<()> {
     let shader_code = compile_shaders()?;
+    let enable_debug_layer = std::env::var("DEBUG_LAYER")
+        .map(|e| !(e == "0" || e == "false"))
+        .unwrap_or(false);
 
     // runtime setup
     let event_loop = EventLoop::new()?;
@@ -113,7 +116,7 @@ pub fn main() -> anyhow::Result<()> {
     )?;
 
     let extensions = ash_window::enumerate_required_extensions(window.display_handle()?.as_raw())?;
-    let device = MyDevice::new(extensions, false)?;
+    let device = MyDevice::new(extensions, enable_debug_layer)?;
     let mut swapchain = MySwapchainManager::new(device.clone(), window)?;
     let mut renderer = MyRenderer::new(MyRenderPipelineManager::new(
         device.clone(),
