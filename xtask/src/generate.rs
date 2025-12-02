@@ -1,3 +1,4 @@
+use anyhow::Context;
 use cargo_generate::GenerateArgs;
 use clap::Parser;
 use clap::builder::PossibleValue;
@@ -63,9 +64,14 @@ impl Debug for Placeholders {
 
 #[derive(Parser, Debug, Default)]
 pub struct Generate {
-    /// Directory where to place the generated templates
+    /// Directory where to place the generated templates.
     #[clap(long)]
     out: Option<PathBuf>,
+    /// A command that should be executed on each generated template.
+    ///
+    /// If a command fails, this process will fail as well, allowing you to test the template output.
+    #[clap(long, short = 'x')]
+    execute: Option<String>,
     values: Vec<Values>,
 }
 
@@ -136,7 +142,7 @@ impl Generate {
         let mut args = GenerateArgs::default();
         args.template_path.path = Some(format!("{}/../ash-graphics", env!("CARGO_MANIFEST_DIR")));
         args.init = true;
-        args.overwrite = false;
+        args.overwrite = true;
         args.define = variant
             .iter()
             .map(|v| format!("{}={}", v.key(), v.value()))
@@ -148,16 +154,35 @@ impl Generate {
         Ok(out_dir)
     }
 
+    fn execute(&self, out_dir: &Path) -> anyhow::Result<()> {
+        if let Some(execute) = &self.execute {
+            let mut split = execute.split(" ");
+            // split iterator has at least one entry
+            let exec = split.next().unwrap();
+            let mut cmd = std::process::Command::new(exec);
+            cmd.args(split).current_dir(out_dir);
+            debug!("Spawning process: {cmd:?}");
+            let status = cmd.spawn()?.wait().context("Process spawning failed")?;
+            if !status.success() {
+                anyhow::bail!("Process spawned by `--execute` failed");
+            }
+        }
+        Ok(())
+    }
+
     pub fn run(&self) -> anyhow::Result<()> {
         let out_base_dir = self.out_base_dir()?;
         let variants = self.variants();
-        let _results = variants
+        let results = variants
             .into_iter()
             .map(|variant| {
                 let out_dir = self.generate(&out_base_dir, &variant)?;
                 Ok((variant, out_dir))
             })
             .collect::<anyhow::Result<Vec<_>>>()?;
+        for (_, out_dir) in &results {
+            self.execute(out_dir)?;
+        }
         Ok(())
     }
 }
