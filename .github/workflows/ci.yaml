@@ -67,7 +67,7 @@ jobs:
   # to update the branch protection rules when the test matrix changes
   test_success:
     runs-on: ubuntu-24.04
-    needs: [test, lint]
+    needs: [test, xtask-test, lint]
     # Hack for buggy GitHub Actions behavior with skipped checks: https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/collaborating-on-repositories-with-code-quality-features/troubleshooting-required-status-checks#handling-skipped-but-required-checks
     if: ${{ always() }}
     steps:
