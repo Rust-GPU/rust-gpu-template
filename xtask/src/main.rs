@@ -2,6 +2,7 @@ use crate::generate::Generate;
 use clap::Parser;
 use log::debug;
 
+pub mod cargo_generate_config;
 mod generate;
 
 #[derive(Parser, Debug)]
