@@ -1,7 +1,7 @@
-{% if integration_type == "spirv-builder" -%}
+{% if integration == "spirv-builder" -%}
 use spirv_builder::{MetadataPrintout, ShaderPanicStrategy, SpirvBuilder};
 {% endif -%}
-{% if integration_type == "cargo-gpu" -%}
+{% if integration == "cargo-gpu" -%}
 use cargo_gpu::Install;
 use cargo_gpu::spirv_builder::{MetadataPrintout, ShaderPanicStrategy};
 {% endif -%}
@@ -14,10 +14,10 @@ pub fn main() -> anyhow::Result<()> {
         .copied()
         .collect::<PathBuf>();
 
-    {% if integration_type == "spirv-builder" -%}
+    {% if integration == "spirv-builder" -%}
     let mut builder = SpirvBuilder::new(crate_path, "spirv-unknown-vulkan1.3");
     {% endif -%}
-    {% if integration_type == "cargo-gpu" -%}
+    {% if integration == "cargo-gpu" -%}
     let install = Install::from_shader_crate(crate_path.clone()).run()?;
     let mut builder = install.to_spirv_builder(crate_path, "spirv-unknown-vulkan1.3");
     {% endif -%}
