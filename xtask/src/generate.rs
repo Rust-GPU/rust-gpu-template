@@ -8,6 +8,8 @@ use std::fmt::{Debug, Display, Formatter};
 use std::path::{Path, PathBuf};
 use strum::{Display, EnumString, IntoStaticStr, VariantArray};
 
+pub const TEMPLATE_PATH: &str = concat!(env!("CARGO_MANIFEST_DIR"), "/../graphics");
+
 /// All possible placeholder *values*.
 ///
 /// We assume there are no duplicate values for placeholders, so we don't need to type out the key / placeholder name,
@@ -148,7 +150,7 @@ impl Generate {
 
         debug!("Generating `{variant:?}` at `{}`", out_dir.display());
         let mut args = GenerateArgs::default();
-        args.template_path.path = Some(format!("{}/../ash-graphics", env!("CARGO_MANIFEST_DIR")));
+        args.template_path.path = Some(TEMPLATE_PATH.to_string());
         args.init = true;
         args.overwrite = true;
         args.define = variant
