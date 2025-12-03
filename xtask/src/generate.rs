@@ -128,6 +128,14 @@ impl Generate {
         Ok(out)
     }
 
+    fn normalize_env(&self) {
+        // Safety: xtask generate is not multithreaded
+        unsafe {
+            std::env::set_var("CARGO_NAME", "generated");
+            std::env::set_var("CARGO_EMAIL", "generated");
+        }
+    }
+
     fn generate(&self, out_base_dir: &Path, variant: &[Values]) -> anyhow::Result<PathBuf> {
         let out_dir = {
             let mut out_dir = PathBuf::from(out_base_dir);
@@ -177,6 +185,7 @@ impl Generate {
     }
 
     pub fn run(&self) -> anyhow::Result<()> {
+        self.normalize_env();
         let out_base_dir = self.out_base_dir()?;
         let variants = self.variants();
         let results = variants
