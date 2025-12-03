@@ -67,24 +67,69 @@ impl TemplateDiscovery {
         Ok(discovery)
     }
 
-    fn split_filter<'a>(&self, filters: impl Iterator<Item = &'a str>) -> Filters {
+    fn split_filter<'a>(&self, filters: impl Iterator<Item = &'a str>) -> Filters<'a> {
         let mut out = Filters::default();
         for filter in filters {
             if self.templates.iter().any(|t| t.name == filter) {
-                out.template_filters.insert(filter.to_string());
+                out.template_filters.insert(filter);
             } else {
-                out.placeholder_filters.push(filter.to_string());
+                out.placeholder_filters.push(filter);
             }
         }
+        debug!("Filters: {out:?}");
         out
+    }
+
+    fn filter_variants<'a>(
+        &'a self,
+        filters: impl Iterator<Item = &'a str>,
+    ) -> anyhow::Result<Vec<(&'a Template, Vec<Define<'a>>)>> {
+        let filters = self.split_filter(filters);
+
+        let mut has_unknown_filter = true;
+        let mut unknown_filter = None;
+        let variants = self
+            .templates
+            .iter()
+            .filter(|template| {
+                filters.template_filters.is_empty()
+                    || filters.template_filters.contains(template.name.as_str())
+            })
+            .flat_map(|template| {
+                let variants_result =
+                    template.variants(filters.placeholder_filters.iter().copied());
+                let variants = match variants_result {
+                    Ok(e) => {
+                        has_unknown_filter = false;
+                        e
+                    }
+                    Err(e) => {
+                        unknown_filter = Some(e);
+                        Vec::new()
+                    }
+                };
+                variants.into_iter().map(move |v| (template, v))
+            })
+            .collect::<Vec<_>>();
+        if has_unknown_filter {
+            if let Some(filter) = unknown_filter {
+                bail!("Unknown filter `{filter}`")
+            } else {
+                // Only reachable if no templates exist, Or if all templates have been filtered out, but you must filter
+                // for at least one template for template filtering to even activate, so should be unreachable.
+                bail!("No templates exist?")
+            }
+        }
+        debug!("Variants: {variants:?}");
+        Ok(variants)
     }
 }
 
-#[derive(Clone, Debug, Default)]
-struct Filters {
-    template_filters: HashSet<String>,
+#[derive(Clone, Debug, Default, Eq, PartialEq)]
+struct Filters<'a> {
+    template_filters: HashSet<&'a str>,
     /// value whether it was used
-    placeholder_filters: Vec<String>,
+    placeholder_filters: Vec<&'a str>,
 }
 
 #[derive(Clone, Debug)]
@@ -296,52 +341,13 @@ impl Generate {
         let out_base_dir = self.out_base_dir()?;
 
         let discovery = TemplateDiscovery::discover()?;
-        let filters = discovery.split_filter(self.filter.iter().map(|a| a.as_str()));
-
-        let mut has_unknown_filter = true;
-        let mut unknown_filter = None;
-        let results = discovery
-            .templates
+        let variants = discovery.filter_variants(self.filter.iter().map(|a| a.as_str()))?;
+        let results = variants
             .iter()
-            .filter(|template| {
-                filters.template_filters.is_empty()
-                    || filters.template_filters.contains(&template.name)
-            })
-            .map(|template| {
-                let variants_result =
-                    template.variants(filters.placeholder_filters.iter().map(|f| f.as_str()));
-                let variants = match variants_result {
-                    Ok(e) => {
-                        has_unknown_filter = false;
-                        e
-                    }
-                    Err(e) => {
-                        unknown_filter = Some(e);
-                        Vec::new()
-                    }
-                };
-                let out_template = out_base_dir.join(&template.name);
-                let results = variants
-                    .iter()
-                    .map(|variant| self.generate(&out_template, template, variant))
-                    .collect::<anyhow::Result<Vec<_>>>()?;
-                Ok((template, results))
+            .map(|(template, variants)| {
+                self.generate(&out_base_dir.join(&template.name), template, variants)
             })
             .collect::<anyhow::Result<Vec<_>>>()?;
-        if has_unknown_filter {
-            if let Some(filter) = unknown_filter {
-                bail!("Unknown filter `{filter}`")
-            } else {
-                // Only reachable if no templates exist, Or if all templates have been filtered out, but you must filter
-                // for at least one template for template filtering to even activate, so should be unreachable.
-                bail!("No templates exist?")
-            }
-        }
-
-        let results = results
-            .into_iter()
-            .flat_map(|(_, a)| a.into_iter())
-            .collect::<Vec<_>>();
         if results.is_empty() {
             // reachable with two templates with differing placeholders and filtering for both
             bail!("Nothing generated, all variants filtered out");
@@ -470,5 +476,63 @@ mod tests {
                 assert_eq!(v_one.len(), each_type_count * i);
             }
         }
+    }
+
+    #[test]
+    pub fn template_filter_all_test() {
+        let discovery = TemplateDiscovery {
+            templates: Vec::from([test_template()]),
+        };
+        let filter = discovery.split_filter(std::iter::empty());
+        assert_eq!(filter, Filters::default());
+        let result = discovery.filter_variants(std::iter::empty()).unwrap();
+        let templates = result
+            .iter()
+            .map(|(t, _)| t.name.as_str())
+            .collect::<Vec<_>>();
+        assert_eq!(templates, ["my-template"; 6])
+    }
+
+    #[test]
+    pub fn template_filter_one_test() {
+        let discovery = TemplateDiscovery {
+            templates: Vec::from([test_template()]),
+        };
+        let filter_args = ["my-template"];
+        let filter = discovery.split_filter(filter_args.iter().copied());
+        assert_eq!(
+            filter,
+            Filters {
+                template_filters: HashSet::from(["my-template"]),
+                placeholder_filters: Vec::new(),
+            }
+        );
+        let result = discovery
+            .filter_variants(filter_args.iter().copied())
+            .unwrap();
+        let templates = result
+            .iter()
+            .map(|(t, _)| t.name.as_str())
+            .collect::<Vec<_>>();
+        assert_eq!(templates, ["my-template"; 6])
+    }
+
+    #[test]
+    pub fn template_filter_none_test() {
+        let discovery = TemplateDiscovery {
+            templates: Vec::from([test_template()]),
+        };
+        let filter_args = ["unknown"];
+        let filter = discovery.split_filter(filter_args.iter().copied());
+        assert_eq!(
+            filter,
+            Filters {
+                template_filters: HashSet::default(),
+                placeholder_filters: Vec::from(["unknown"]),
+            }
+        );
+        let result = discovery.filter_variants(filter_args.iter().copied());
+        // Unknown filter
+        assert!(result.is_err(), "Result: {result:#?}");
     }
 }
