@@ -1,16 +1,14 @@
-use cargo_gpu::Install;
-use cargo_gpu::spirv_builder::{MetadataPrintout, ShaderPanicStrategy};
+use spirv_builder::{MetadataPrintout, ShaderPanicStrategy, SpirvBuilder};
 use std::path::PathBuf;
 
 pub fn main() -> anyhow::Result<()> {
     let manifest_dir = env!("CARGO_MANIFEST_DIR");
-    let crate_path = [manifest_dir, "..", "ash-graphics-shaders"]
+    let crate_path = [manifest_dir, "..", "shaders"]
         .iter()
         .copied()
         .collect::<PathBuf>();
 
-    let install = Install::from_shader_crate(crate_path.clone()).run()?;
-    let mut builder = install.to_spirv_builder(crate_path, "spirv-unknown-vulkan1.3");
+    let mut builder = SpirvBuilder::new(crate_path, "spirv-unknown-vulkan1.3");
     builder.print_metadata = MetadataPrintout::DependencyOnly;
     builder.shader_panic_strategy = ShaderPanicStrategy::DebugPrintfThenExit {
         print_inputs: true,

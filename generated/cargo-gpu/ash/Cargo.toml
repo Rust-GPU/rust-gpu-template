@@ -1,0 +1,25 @@
+[package]
+name = "graphics-ash"
+publish = false
+version.workspace = true
+authors.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+
+[lints]
+workspace = true
+
+[dependencies]
+graphics-shaders = { path = "../shaders" }
+
+ash.workspace = true
+ash-window.workspace = true
+raw-window-handle.workspace = true
+winit.workspace = true
+anyhow.workspace = true
+bytemuck.workspace = true
+
+[build-dependencies]
+cargo-gpu.workspace = true
+anyhow.workspace = true

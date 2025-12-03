@@ -1,5 +1,5 @@
 [package]
-name = "ash-graphics"
+name = "graphics-ash"
 publish = false
 version.workspace = true
 authors.workspace = true
@@ -10,12 +10,15 @@ repository.workspace = true
 [lints]
 workspace = true
 
+{% if integration == "spirv-builder" -%}
 [features]
 default = ["use-compiled-tools"]
 use-installed-tools = ["spirv-builder/use-installed-tools"]
 use-compiled-tools = ["spirv-builder/use-compiled-tools"]
+{% endif -%}
+
 [dependencies]
-ash-graphics-shaders = { path = "../ash-graphics-shaders" }
+graphics-shaders = { path = "../shaders" }
 
 ash.workspace = true
 ash-window.workspace = true
@@ -25,5 +28,10 @@ anyhow.workspace = true
 bytemuck.workspace = true
 
 [build-dependencies]
+{% if integration == "spirv-builder" -%}
 spirv-builder.workspace = true
+{% endif -%}
+{% if integration == "cargo-gpu" -%}
+cargo-gpu.workspace = true
+{% endif -%}
 anyhow.workspace = true
