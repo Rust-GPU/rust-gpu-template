@@ -53,7 +53,8 @@ jobs:
       - name: xtask build
         run: cd xtask && cargo build
       - name: xtask generate
-        run: cargo xtask generate ${{ matrix.integration }}
+        # generate all variants, since `--clean` deletes `generated/`, not generating all of them will cause changes
+        run: cargo xtask generate --clean
       - name: check generated files are up-to-date
         run: |
           git add .

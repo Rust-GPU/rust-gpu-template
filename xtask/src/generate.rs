@@ -69,6 +69,10 @@ pub struct Generate {
     /// Directory where to place the generated templates.
     #[clap(long)]
     out: Option<PathBuf>,
+    /// Clean generate, deletes the generated directory before generating templates. Use this when you moved or removed
+    /// files.
+    #[clap(long)]
+    clean: bool,
     /// A command that should be executed on each generated template.
     ///
     /// If a command fails, this process will fail as well, allowing you to test the template output.
@@ -126,6 +130,10 @@ impl Generate {
             .out
             .clone()
             .unwrap_or_else(|| PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../generated"));
+        debug!("out_base_dir: {}", out.display());
+        if self.clean {
+            std::fs::remove_dir_all(&out)?;
+        }
         std::fs::create_dir_all(&out)?;
         Ok(out)
     }
