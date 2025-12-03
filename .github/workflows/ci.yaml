@@ -14,7 +14,7 @@ concurrency:
 
 jobs:
   test:
-    name: Test
+    name: test
     strategy:
       fail-fast: false
       matrix:
@@ -79,7 +79,7 @@ jobs:
           [[ "${{ needs.lint.result }}" == "success" ]] || exit 1
 
   xtask-test:
-    name: xtask test
+    name: xtask test & lint
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4
@@ -108,7 +108,11 @@ jobs:
         run: cd xtask && cargo clippy --all-targets -- -D warnings
 
   lint:
-    name: Lint
+    name: lint
+    strategy:
+      fail-fast: false
+      matrix:
+        integration: [ "cargo-gpu", "spirv-builder" ]
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4
@@ -126,14 +130,14 @@ jobs:
       - name: xtask build
         run: cd xtask && cargo build
       - name: xtask generate
-        run: cargo xtask generate
+        run: cargo xtask generate ${{ matrix.integration }}
         # no --locked, templates need to generate their lockfile
       - name: cargo fetch
-        run: cargo xtask generate -x "cargo fetch"
+        run: cargo xtask generate ${{ matrix.integration }} -x "cargo fetch"
       - name: fmt
-        run: cargo xtask generate -x "cargo fmt --all -- --check"
+        run: cargo xtask generate ${{ matrix.integration }} -x "cargo fmt --all -- --check"
       - name: clippy
-        run: cargo xtask generate -x "cargo clippy --all-targets -- -D warnings"
+        run: cargo xtask generate ${{ matrix.integration }} -x "cargo clippy --all-targets -- -D warnings"
 
 defaults:
   run:
