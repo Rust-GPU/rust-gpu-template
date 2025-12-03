@@ -1,0 +1,57 @@
+[workspace]
+members = [
+    "ash-graphics",
+    "ash-graphics-shaders"
+]
+resolver = "3"
+
+[workspace.package]
+version = "0.1.0"
+authors = ["firestar99 <firestar99@sydow.cloud>"]
+edition = "2024"
+license = "MIT"
+repository = ""
+
+[workspace.lints.rust]
+unexpected_cfgs = { level = "allow", check-cfg = ['cfg(target_arch, values("spirv"))'] }
+
+[workspace.dependencies]
+# The version of the dependencies `spirv-builder` and `spirv-std` must match exactly!
+spirv-builder = { git = "https://github.com/Rust-GPU/rust-gpu", rev = "6fb875068d0d35b1a81ae89b73cf7a464f8c60f7" }
+spirv-std = { git = "https://github.com/Rust-GPU/rust-gpu", rev = "6fb875068d0d35b1a81ae89b73cf7a464f8c60f7" }
+
+glam = { version = "0.30.9", default-features = false }
+bytemuck = { version = "1.24.0", features = ["derive"] }
+ash = "0.38"
+ash-window = "0.13"
+raw-window-handle = "0.6.2"
+winit = "0.30.0"
+cfg-if = "1.0.0"
+anyhow = "1.0.98"
+
+# Optimize build scripts, copied from rust-gpu's repo
+# Enable incremental by default in release mode.
+[profile.release]
+incremental = true
+# HACK(eddyb) this is the default but without explicitly specifying it, Cargo
+# will treat the identical settings in `[profile.release.build-override]` below
+# as different sets of `rustc` flags and will not reuse artifacts between them.
+codegen-units = 256
+
+# Compile build-dependencies in release mode with the same settings
+# as regular dependencies (including the incremental enabled above).
+[profile.release.build-override]
+opt-level = 3
+incremental = true
+codegen-units = 256
+
+# HACK(eddyb) reduce the number of linker exports and/or imports, by avoiding
+# inter-CGU linkage, to stay under the 64Ki MSVC limit for `rustc_codegen_spirv`
+# when building it in "debug mode" (only relevant to CI for now, realistically),
+# i.e. working around this issue: https://github.com/rust-lang/rust/issues/53014.
+[profile.dev]
+# HACK(eddyb) fewer inter-crate exports/imports (not just inter-CGU), but sadly
+# not configurable w/o breaking `Cargo.toml` parsing from non-nightly Cargo.
+#
+# rustflags = ["-Zshare-generics=off"]
+codegen-units = 1
