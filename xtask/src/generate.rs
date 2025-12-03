@@ -1,14 +1,12 @@
 use crate::cargo_generate_config::{CONFIG_FILE_NAME, Config};
-use anyhow::{Context, anyhow, bail};
+use anyhow::{Context, bail};
 use cargo_generate::GenerateArgs;
 use clap::Parser;
 use indexmap::IndexMap;
 use log::{debug, info};
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
 use std::fmt::{Debug, Display, Formatter};
 use std::path::{Path, PathBuf};
-
-pub const TEMPLATE_PATH: &str = concat!(env!("CARGO_MANIFEST_DIR"), "/../graphics");
 
 #[derive(Parser, Debug, Default)]
 pub struct Generate {
@@ -29,6 +27,64 @@ pub struct Generate {
     /// We assume there are no values that two different placeholders match, within a single template, so we don't have
     /// to specify the placeholder the value is associated to.
     filter: Vec<String>,
+}
+
+#[derive(Clone, Debug)]
+struct TemplateDiscovery {
+    templates: Vec<Template>,
+}
+
+impl TemplateDiscovery {
+    pub const TEMPLATE_PATH: &'static str = concat!(env!("CARGO_MANIFEST_DIR"), "/..");
+
+    fn discover() -> anyhow::Result<Self> {
+        Self::discover_at(Path::new(Self::TEMPLATE_PATH))
+    }
+
+    /// Our discovery is not as dynamic as `cargo_generate`, written to be just sufficient for this repo and to be
+    /// *fast*, even with a large target directory. Primarily, that means not scanning through the entire dir tree,
+    /// instead just using the paths that are explicitly defined in the config.
+    /// https://github.com/cargo-generate/cargo-generate/issues/1600
+    fn discover_at(base_dir: &Path) -> anyhow::Result<Self> {
+        let sub_templates = {
+            let root_file = base_dir.join(CONFIG_FILE_NAME);
+            let root: Config = toml::from_str(&std::fs::read_to_string(&root_file)?)?;
+            let root_template = root
+                .template
+                .with_context(|| format!("Expected `template` in `{}`", root_file.display()))?;
+            root_template.sub_templates.unwrap_or_else(Vec::new)
+        };
+
+        let templates = sub_templates
+            .into_iter()
+            .map(|name| {
+                let template_dir = base_dir.join(&name);
+                Template::parse(name, template_dir)
+            })
+            .collect::<anyhow::Result<Vec<_>>>()?;
+        let discovery = Self { templates };
+        debug!("Discovery found: {discovery:#?}");
+        Ok(discovery)
+    }
+
+    fn split_filter<'a>(&self, filters: impl Iterator<Item = &'a str>) -> Filters {
+        let mut out = Filters::default();
+        for filter in filters {
+            if self.templates.iter().any(|t| t.name == filter) {
+                out.template_filters.insert(filter.to_string());
+            } else {
+                out.placeholder_filters.push(filter.to_string());
+            }
+        }
+        out
+    }
+}
+
+#[derive(Clone, Debug, Default)]
+struct Filters {
+    template_filters: HashSet<String>,
+    /// value whether it was used
+    placeholder_filters: Vec<String>,
 }
 
 #[derive(Clone, Debug)]
@@ -57,10 +113,6 @@ impl Debug for Define<'_> {
 }
 
 impl Template {
-    fn graphics() -> anyhow::Result<Self> {
-        Self::parse("graphics".to_string(), PathBuf::from(TEMPLATE_PATH))
-    }
-
     fn parse(name: String, template_dir: PathBuf) -> anyhow::Result<Self> {
         let config_file = template_dir.join(CONFIG_FILE_NAME);
         let config: Config = toml::from_str(&std::fs::read_to_string(&config_file)?)?;
@@ -243,15 +295,58 @@ impl Generate {
         self.normalize_env();
         let out_base_dir = self.out_base_dir()?;
 
-        let template = Template::graphics()?;
-        let variants = template
-            .variants(self.filter.iter().map(|f| f.as_str()))
-            .map_err(|filter| anyhow!("Unknown filter `{filter}`"))?;
-        let results = variants
+        let discovery = TemplateDiscovery::discover()?;
+        let filters = discovery.split_filter(self.filter.iter().map(|a| a.as_str()));
+
+        let mut has_unknown_filter = true;
+        let mut unknown_filter = None;
+        let results = discovery
+            .templates
             .iter()
-            .map(|variant| self.generate(&out_base_dir, &template, variant))
+            .filter(|template| {
+                filters.template_filters.is_empty()
+                    || filters.template_filters.contains(&template.name)
+            })
+            .map(|template| {
+                let variants_result =
+                    template.variants(filters.placeholder_filters.iter().map(|f| f.as_str()));
+                let variants = match variants_result {
+                    Ok(e) => {
+                        has_unknown_filter = false;
+                        e
+                    }
+                    Err(e) => {
+                        unknown_filter = Some(e);
+                        Vec::new()
+                    }
+                };
+                let results = variants
+                    .iter()
+                    .map(|variant| self.generate(&out_base_dir, template, variant))
+                    .collect::<anyhow::Result<Vec<_>>>()?;
+                Ok((template, results))
+            })
             .collect::<anyhow::Result<Vec<_>>>()?;
-        self.execute(results.iter().map(|a| a.as_path()))?;
+        if has_unknown_filter {
+            if let Some(filter) = unknown_filter {
+                bail!("Unknown filter `{filter}`")
+            } else {
+                // Only reachable if no templates exist, Or if all templates have been filtered out, but you must filter
+                // for at least one template for template filtering to even activate, so should be unreachable.
+                bail!("No templates exist?")
+            }
+        }
+
+        let results = results
+            .into_iter()
+            .flat_map(|(_, a)| a.into_iter())
+            .collect::<Vec<_>>();
+        if results.is_empty() {
+            // reachable with two templates with differing placeholders and filtering for both
+            bail!("Nothing generated, all variants filtered out");
+        }
+
+        self.execute(results.iter().map(|b| b.as_path()))?;
         Ok(())
     }
 }
@@ -321,15 +416,19 @@ mod tests {
 
     #[test]
     pub fn variants_cross_product_test() {
-        variants_cross_product(test_template());
+        variants_cross_product(&test_template());
     }
 
     #[test]
     pub fn variants_cross_product_repo() {
-        variants_cross_product(Template::graphics().unwrap());
+        let discovery = TemplateDiscovery::discover().unwrap();
+        for template in &discovery.templates {
+            debug!("Template {}:", template.name);
+            variants_cross_product(template);
+        }
     }
 
-    pub fn variants_cross_product(template: Template) {
+    pub fn variants_cross_product(template: &Template) {
         let variants = template.variants(std::iter::empty()).unwrap();
         for variant in variants {
             for value in variant.iter() {
@@ -344,15 +443,19 @@ mod tests {
 
     #[test]
     pub fn variants_filter_test() {
-        variants_filter(test_template())
+        variants_filter(&test_template())
     }
 
     #[test]
     pub fn variants_filter_repo() {
-        variants_filter(Template::graphics().unwrap())
+        let discovery = TemplateDiscovery::discover().unwrap();
+        for template in &discovery.templates {
+            debug!("Template {}:", template.name);
+            variants_filter(template);
+        }
     }
 
-    pub fn variants_filter(template: Template) {
+    pub fn variants_filter(template: &Template) {
         let v_all = template.variants(std::iter::empty()).unwrap();
         for (p, values) in &template.placeholders {
             debug!("{p}: {values:?}");
