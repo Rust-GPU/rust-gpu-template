@@ -40,7 +40,7 @@ impl clap::ValueEnum for Values {
 impl Values {
     pub fn key(&self) -> Placeholders {
         match self {
-            Values::CargoGpu | Values::SpirvBuilder => Placeholders::IntegrationType,
+            Values::CargoGpu | Values::SpirvBuilder => Placeholders::Integration,
         }
     }
 
@@ -52,8 +52,8 @@ impl Values {
 #[repr(u32)]
 #[derive(Copy, Clone, Eq, PartialEq, Hash, Display, EnumString, IntoStaticStr, VariantArray)]
 pub enum Placeholders {
-    #[strum(to_string = "integration_type")]
-    IntegrationType,
+    #[strum(to_string = "integration")]
+    Integration,
 }
 
 impl Debug for Placeholders {

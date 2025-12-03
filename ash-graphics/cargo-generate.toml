@@ -3,7 +3,7 @@ ignore = ["target"]
 exclude = ["target"]
 
 [placeholders]
-integration_type = { prompt = "What integration type?", choices = ["cargo-gpu", "spirv-builder"], default = "cargo-gpu", type = "string" }
+integration = { prompt = "What integration type?", choices = ["cargo-gpu", "spirv-builder"], default = "cargo-gpu", type = "string" }
 
-[conditional.'integration_type != "spirv-builder"']
+[conditional.'integration != "spirv-builder"']
 ignore = [ "rust-toolchain.toml" ]

@@ -10,7 +10,7 @@ repository.workspace = true
 [lints]
 workspace = true
 
-{% if integration_type == "spirv-builder" -%}
+{% if integration == "spirv-builder" -%}
 [features]
 default = ["use-compiled-tools"]
 use-installed-tools = ["spirv-builder/use-installed-tools"]
@@ -28,10 +28,10 @@ anyhow.workspace = true
 bytemuck.workspace = true
 
 [build-dependencies]
-{% if integration_type == "spirv-builder" -%}
+{% if integration == "spirv-builder" -%}
 spirv-builder.workspace = true
 {% endif -%}
-{% if integration_type == "cargo-gpu" -%}
+{% if integration == "cargo-gpu" -%}
 cargo-gpu.workspace = true
 {% endif -%}
 anyhow.workspace = true
