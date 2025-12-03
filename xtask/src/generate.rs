@@ -320,9 +320,10 @@ impl Generate {
                         Vec::new()
                     }
                 };
+                let out_template = out_base_dir.join(&template.name);
                 let results = variants
                     .iter()
-                    .map(|variant| self.generate(&out_base_dir, template, variant))
+                    .map(|variant| self.generate(&out_template, template, variant))
                     .collect::<anyhow::Result<Vec<_>>>()?;
                 Ok((template, results))
             })
