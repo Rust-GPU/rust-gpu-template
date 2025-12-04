@@ -1,5 +1,5 @@
 [package]
-name = "graphics-ash"
+name = "mygraphics"
 publish = false
 version.workspace = true
 authors.workspace = true
@@ -18,7 +18,7 @@ use-compiled-tools = ["spirv-builder/use-compiled-tools"]
 {% endif -%}
 
 [dependencies]
-graphics-shaders = { path = "../shaders" }
+mygraphics-shaders = { path = "../mygraphics-shaders" }
 
 ash.workspace = true
 ash-window.workspace = true
