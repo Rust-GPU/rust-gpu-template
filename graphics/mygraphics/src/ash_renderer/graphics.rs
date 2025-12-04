@@ -1,6 +1,6 @@
-use crate::device::MyDevice;
-use crate::single_command_buffer::SingleCommandBuffer;
-use crate::swapchain::DrawFrame;
+use crate::ash_renderer::device::MyDevice;
+use crate::ash_renderer::single_command_buffer::SingleCommandBuffer;
+use crate::ash_renderer::swapchain::DrawFrame;
 use anyhow::Context;
 use ash::vk;
 use mygraphics_shaders::ShaderConstants;
