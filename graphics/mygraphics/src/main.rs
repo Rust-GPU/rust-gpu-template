@@ -74,7 +74,7 @@ use crate::device::MyDevice;
 use crate::graphics::{MyRenderPipelineManager, MyRenderer};
 use crate::swapchain::MySwapchainManager;
 use ash::util::read_spv;
-use graphics_shaders::ShaderConstants;
+use mygraphics_shaders::ShaderConstants;
 use raw_window_handle::HasDisplayHandle as _;
 use winit::event_loop::ActiveEventLoop;
 use winit::{
