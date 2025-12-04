@@ -1,4 +1,4 @@
-use crate::device::MyDevice;
+use crate::ash_renderer::device::MyDevice;
 use ash::vk;
 use std::sync::Arc;
 
