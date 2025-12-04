@@ -1,6 +1,7 @@
 use crate::ash_renderer::device::MyDevice;
 use crate::ash_renderer::graphics::{MyRenderPipelineManager, MyRenderer};
 use crate::ash_renderer::swapchain::MySwapchainManager;
+use crate::enable_debug_layer;
 use ash::util::read_spv;
 use mygraphics_shaders::ShaderConstants;
 use raw_window_handle::HasDisplayHandle as _;
@@ -16,10 +17,6 @@ pub mod single_command_buffer;
 pub mod swapchain;
 
 pub fn main() -> anyhow::Result<()> {
-    let enable_debug_layer = std::env::var("DEBUG_LAYER")
-        .map(|e| !(e == "0" || e == "false"))
-        .unwrap_or(false);
-
     // runtime setup
     let event_loop = EventLoop::new()?;
     // FIXME(eddyb) incomplete `winit` upgrade, follow the guides in:
@@ -35,7 +32,7 @@ pub fn main() -> anyhow::Result<()> {
     )?;
 
     let extensions = ash_window::enumerate_required_extensions(window.display_handle()?.as_raw())?;
-    let device = MyDevice::new(extensions, enable_debug_layer)?;
+    let device = MyDevice::new(extensions, enable_debug_layer())?;
     let mut swapchain = MySwapchainManager::new(device.clone(), window)?;
     let mut renderer = MyRenderer::new(MyRenderPipelineManager::new(
         device.clone(),
