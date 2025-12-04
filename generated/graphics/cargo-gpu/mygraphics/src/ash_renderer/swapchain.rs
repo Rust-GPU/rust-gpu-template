@@ -1,4 +1,4 @@
-use crate::device::MyDevice;
+use crate::ash_renderer::device::MyDevice;
 use anyhow::Context;
 use ash::vk;
 use raw_window_handle::{HasDisplayHandle, HasWindowHandle};
