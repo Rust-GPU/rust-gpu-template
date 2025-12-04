@@ -3,7 +3,8 @@ ignore = ["target", "mygraphics/src/bin"]
 exclude = ["target", "mygraphics/src/bin"]
 
 [placeholders]
-integration = { prompt = "What integration type?", choices = ["cargo-gpu", "spirv-builder"], default = "cargo-gpu", type = "string" }
+api = { prompt = "What API?", choices = ["ash"], default = "ash", type = "string" }
+integration = { prompt = "How to integrate rust-gpu?", choices = ["cargo-gpu", "spirv-builder"], default = "cargo-gpu", type = "string" }
 
 [conditional.'integration != "spirv-builder"']
 ignore = [ "rust-toolchain.toml" ]
