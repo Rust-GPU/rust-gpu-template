@@ -1,5 +1,5 @@
 [package]
-name = "graphics-ash"
+name = "mygraphics"
 publish = false
 version.workspace = true
 authors.workspace = true
@@ -10,12 +10,8 @@ repository.workspace = true
 [lints]
 workspace = true
 
-[features]
-default = ["use-compiled-tools"]
-use-installed-tools = ["spirv-builder/use-installed-tools"]
-use-compiled-tools = ["spirv-builder/use-compiled-tools"]
 [dependencies]
-graphics-shaders = { path = "../shaders" }
+mygraphics-shaders = { path = "../mygraphics-shaders" }
 
 ash.workspace = true
 ash-window.workspace = true
@@ -25,5 +21,5 @@ anyhow.workspace = true
 bytemuck.workspace = true
 
 [build-dependencies]
-spirv-builder.workspace = true
+cargo-gpu.workspace = true
 anyhow.workspace = true

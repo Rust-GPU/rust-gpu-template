@@ -3,7 +3,7 @@ use crate::single_command_buffer::SingleCommandBuffer;
 use crate::swapchain::DrawFrame;
 use anyhow::Context;
 use ash::vk;
-use graphics_shaders::ShaderConstants;
+use mygraphics_shaders::ShaderConstants;
 use std::sync::Arc;
 
 /// Manages the creation and recreation of [`MyRenderPipeline`], whenever new shader code ([`Self::set_shader_code`])
