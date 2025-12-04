@@ -11,15 +11,21 @@ repository.workspace = true
 workspace = true
 
 [dependencies]
+# shader crate
 mygraphics-shaders = { path = "../mygraphics-shaders" }
 
-ash.workspace = true
-ash-window.workspace = true
+# API
+wgpu.workspace = true
+
+# other
 raw-window-handle.workspace = true
 winit.workspace = true
 anyhow.workspace = true
 bytemuck.workspace = true
 
 [build-dependencies]
+# rust-gpu
 cargo-gpu.workspace = true
+
+# other
 anyhow.workspace = true

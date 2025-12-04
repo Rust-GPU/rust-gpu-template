@@ -15,15 +15,22 @@ default = ["use-compiled-tools"]
 use-installed-tools = ["spirv-builder/use-installed-tools"]
 use-compiled-tools = ["spirv-builder/use-compiled-tools"]
 [dependencies]
+# shader crate
 mygraphics-shaders = { path = "../mygraphics-shaders" }
 
+# API
 ash.workspace = true
 ash-window.workspace = true
+
+# other
 raw-window-handle.workspace = true
 winit.workspace = true
 anyhow.workspace = true
 bytemuck.workspace = true
 
 [build-dependencies]
+# rust-gpu
 spirv-builder.workspace = true
+
+# other
 anyhow.workspace = true
