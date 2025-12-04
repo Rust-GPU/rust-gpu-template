@@ -18,20 +18,32 @@ use-compiled-tools = ["spirv-builder/use-compiled-tools"]
 {% endif -%}
 
 [dependencies]
+# shader crate
 mygraphics-shaders = { path = "../mygraphics-shaders" }
 
+# API
+{% if api == "ash" -%}
 ash.workspace = true
 ash-window.workspace = true
+{%- endif -%}
+{%- if api == "wgpu" -%}
+wgpu.workspace = true
+{%- endif %}
+
+# other
 raw-window-handle.workspace = true
 winit.workspace = true
 anyhow.workspace = true
 bytemuck.workspace = true
 
 [build-dependencies]
+# rust-gpu
 {% if integration == "spirv-builder" -%}
 spirv-builder.workspace = true
-{% endif -%}
-{% if integration == "cargo-gpu" -%}
+{%- endif -%}
+{%- if integration == "cargo-gpu" -%}
 cargo-gpu.workspace = true
-{% endif -%}
+{%- endif %}
+
+# other
 anyhow.workspace = true
