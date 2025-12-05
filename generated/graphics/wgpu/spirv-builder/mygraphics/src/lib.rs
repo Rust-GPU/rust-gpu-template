@@ -70,10 +70,5 @@
 // crate-specific exceptions:
 // #![allow()]
 
-{% if api == "ash" -%}
-pub mod ash_renderer;
-{% endif -%}
 pub mod util;
-{% if api == "wgpu" -%}
 pub mod wgpu_renderer;
-{% endif -%}
