@@ -72,10 +72,6 @@
 
 pub mod ash_renderer;
 
-pub fn main() -> anyhow::Result<()> {
-    ash_renderer::main()
-}
-
 pub fn enable_debug_layer() -> bool {
     std::env::var("DEBUG_LAYER")
         .map(|e| !(e == "0" || e == "false"))
