@@ -1,0 +1,8 @@
+pub fn main() -> anyhow::Result<()> {
+    {%- if api == "ash" %}
+    mygraphics::ash_renderer::main()
+    {%- endif -%}
+    {%- if api == "wgpu" %}
+    mygraphics::wgpu_renderer::main()
+    {%- endif %}
+}
