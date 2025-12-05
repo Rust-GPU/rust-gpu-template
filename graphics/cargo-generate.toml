@@ -1,9 +1,16 @@
 [template]
-ignore = ["target"]
-exclude = ["target"]
+ignore = ["target", "mygraphics/src/bin"]
+exclude = ["target", "mygraphics/src/bin"]
 
 [placeholders]
-integration = { prompt = "What integration type?", choices = ["cargo-gpu", "spirv-builder"], default = "cargo-gpu", type = "string" }
+api = { prompt = "What API?", choices = ["wgpu", "ash"], default = "wgpu", type = "string" }
+integration = { prompt = "How to integrate rust-gpu?", choices = ["cargo-gpu", "spirv-builder"], default = "cargo-gpu", type = "string" }
 
 [conditional.'integration != "spirv-builder"']
 ignore = [ "rust-toolchain.toml" ]
+
+[conditional.'api == "ash"']
+ignore = [ "mygraphics/src/wgpu_renderer" ]
+
+[conditional.'api == "wgpu"']
+ignore = [ "mygraphics/src/ash_renderer" ]

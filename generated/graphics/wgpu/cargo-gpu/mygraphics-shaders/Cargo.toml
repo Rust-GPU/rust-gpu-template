@@ -1,0 +1,15 @@
+[package]
+name = "mygraphics-shaders"
+version = "0.1.0"
+edition = "2024"
+
+[lints]
+workspace = true
+
+[lib]
+crate-type = ["lib", "dylib"]
+
+[dependencies]
+spirv-std.workspace = true
+glam.workspace = true
+bytemuck.workspace = true
