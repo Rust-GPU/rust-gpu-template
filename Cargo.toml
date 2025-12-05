@@ -1,0 +1,35 @@
+[workspace]
+members = [
+    "graphics/mygraphics",
+    "graphics/mygraphics-shaders",
+    "xtask",
+]
+resolver = "3"
+
+[workspace.package]
+version = "0.1.0"
+authors = ["generated <generated>"]
+edition = "2024"
+license = "MIT"
+repository = ""
+
+[workspace.lints.rust]
+unexpected_cfgs = { level = "allow", check-cfg = ['cfg(target_arch, values("spirv"))'] }
+
+[workspace.dependencies]
+# API
+ash = "0.38"
+ash-window = "0.13"
+wgpu = { version = "27.0.1", default-features = false, features = ["std", "parking_lot", "vulkan", "vulkan-portability", "spirv", "wgsl"] }
+
+# rust-gpu
+cargo-gpu = { git = "https://github.com/Rust-GPU/cargo-gpu", rev = "bf24eb6060e0c7b0013eceddd23b5d7cee68f4cc" }
+spirv-std = { git = "https://github.com/Rust-GPU/rust-gpu", rev = "6fb875068d0d35b1a81ae89b73cf7a464f8c60f7" }
+
+# other
+glam = { version = "0.30.9", default-features = false }
+bytemuck = { version = "1.24.0", features = ["derive"] }
+raw-window-handle = "0.6.2"
+winit = "0.30.0"
+cfg-if = "1.0.0"
+anyhow = "1.0.98"

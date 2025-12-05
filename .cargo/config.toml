@@ -2,7 +2,4 @@
 target-dir = "target"
 
 [alias]
-# We can't use `--package xtask` since we don't have a workspace at the root of this repo.
-# Instead, we have one workspace per template expansion in `generated`, which wouldn't mix with an external xtask crate.
-# So xtask is limited to the root of the repo, unfortunately.
-xtask = "run --manifest-path=./xtask/Cargo.toml --"
+xtask = "run --package xtask --"
