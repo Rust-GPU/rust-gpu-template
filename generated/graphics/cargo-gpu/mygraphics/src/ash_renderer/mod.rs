@@ -1,7 +1,7 @@
 use crate::ash_renderer::device::MyDevice;
 use crate::ash_renderer::graphics::{MyRenderPipelineManager, MyRenderer};
 use crate::ash_renderer::swapchain::MySwapchainManager;
-use crate::enable_debug_layer;
+use crate::util::enable_debug_layer;
 use ash::util::read_spv;
 use mygraphics_shaders::ShaderConstants;
 use raw_window_handle::HasDisplayHandle as _;
