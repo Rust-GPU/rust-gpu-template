@@ -1,6 +1,6 @@
 [template]
-ignore = ["target"]
-exclude = ["target"]
+ignore = ["target", "mygraphics/src/bin"]
+exclude = ["target", "mygraphics/src/bin"]
 
 [placeholders]
 integration = { prompt = "What integration type?", choices = ["cargo-gpu", "spirv-builder"], default = "cargo-gpu", type = "string" }
