@@ -2,7 +2,7 @@
 
 use bytemuck::{Pod, Zeroable};
 use core::f32::consts::PI;
-use glam::{Vec3, Vec4, vec2, vec3};
+use glam::{vec2, vec3, Vec3, Vec4};
 #[cfg(target_arch = "spirv")]
 use spirv_std::num_traits::Float;
 use spirv_std::spirv;
