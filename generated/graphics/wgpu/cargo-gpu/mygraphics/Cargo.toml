@@ -17,6 +17,7 @@ mygraphics-shaders = { path = "../mygraphics-shaders" }
 # API
 wgpu.workspace = true
 pollster.workspace = true
+env_logger.workspace = true
 
 # other
 raw-window-handle.workspace = true
