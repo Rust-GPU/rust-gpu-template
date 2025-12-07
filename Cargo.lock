@@ -2044,6 +2044,7 @@ dependencies = [
  "ash-window",
  "bytemuck",
  "cargo-gpu",
+ "env_logger",
  "mygraphics-shaders",
  "pollster",
  "raw-window-handle",

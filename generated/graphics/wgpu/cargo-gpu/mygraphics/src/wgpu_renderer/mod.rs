@@ -10,6 +10,7 @@ mod renderer;
 mod swapchain;
 
 pub fn main() -> anyhow::Result<()> {
+    env_logger::init();
     pollster::block_on(main_inner())
 }
 
@@ -35,7 +36,8 @@ pub async fn main_inner() -> anyhow::Result<()> {
     let adapter =
         wgpu::util::initialize_adapter_from_env_or_default(&instance, Some(&surface)).await?;
 
-    let required_features = wgpu::Features::PUSH_CONSTANTS;
+    let required_features =
+        wgpu::Features::PUSH_CONSTANTS | wgpu::Features::EXPERIMENTAL_PASSTHROUGH_SHADERS;
     let required_limits = wgpu::Limits {
         max_push_constant_size: 128,
         ..Default::default()
@@ -45,7 +47,7 @@ pub async fn main_inner() -> anyhow::Result<()> {
             label: None,
             required_features,
             required_limits,
-            experimental_features: wgpu::ExperimentalFeatures::disabled(),
+            experimental_features: unsafe { wgpu::ExperimentalFeatures::enabled() },
             memory_hints: wgpu::MemoryHints::Performance,
             trace: Default::default(),
         })
