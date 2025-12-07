@@ -18,6 +18,7 @@ mygraphics-shaders = { path = "../mygraphics-shaders" }
 ash.workspace = true
 ash-window.workspace = true
 wgpu.workspace = true
+pollster.workspace = true
 
 # other
 raw-window-handle.workspace = true

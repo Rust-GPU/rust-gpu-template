@@ -21,6 +21,7 @@ unexpected_cfgs = { level = "allow", check-cfg = ['cfg(target_arch, values("spir
 ash = "0.38"
 ash-window = "0.13"
 wgpu = { version = "27.0.1", default-features = false, features = ["std", "parking_lot", "vulkan", "vulkan-portability", "spirv", "wgsl"] }
+pollster = "0.4.0"
 
 # rust-gpu
 cargo-gpu = { git = "https://github.com/Rust-GPU/cargo-gpu", rev = "bf24eb6060e0c7b0013eceddd23b5d7cee68f4cc" }
