@@ -23,6 +23,7 @@ ash-window = "0.13"
 {%- endif -%}
 {%- if api == "wgpu" -%}
 wgpu = { version = "27.0.1", default-features = false, features = ["std", "parking_lot", "vulkan", "vulkan-portability", "spirv", "wgsl"] }
+pollster = "0.4.0"
 {%- endif %}
 
 # rust-gpu
