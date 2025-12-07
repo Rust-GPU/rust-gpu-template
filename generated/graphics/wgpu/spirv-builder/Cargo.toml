@@ -18,6 +18,7 @@ unexpected_cfgs = { level = "allow", check-cfg = ['cfg(target_arch, values("spir
 [workspace.dependencies]
 # API
 wgpu = { version = "27.0.1", default-features = false, features = ["std", "parking_lot", "vulkan", "vulkan-portability", "spirv", "wgsl"] }
+pollster = "0.4.0"
 
 # rust-gpu
 # The version of the dependencies `spirv-builder` and `spirv-std` must match exactly!
