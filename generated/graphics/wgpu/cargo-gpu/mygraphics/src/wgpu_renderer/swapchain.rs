@@ -85,7 +85,7 @@ impl<'a> MySwapchainManager<'a> {
                     self.should_recreate = true;
                 }
                 Err(e) => {
-                    anyhow::bail!("get_current_texture() failed: {}", e)
+                    anyhow::bail!("get_current_texture() failed: {e}")
                 }
             };
         }
