@@ -82,7 +82,7 @@ jobs:
   # to update the branch protection rules when the test matrix changes
   test_success:
     runs-on: ubuntu-24.04
-    needs: [test, xtask-test, lint]
+    needs: [test, template-test, lint]
     # Hack for buggy GitHub Actions behavior with skipped checks: https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/collaborating-on-repositories-with-code-quality-features/troubleshooting-required-status-checks#handling-skipped-but-required-checks
     if: ${{ always() }}
     steps:
@@ -90,10 +90,10 @@ jobs:
       - run: |
           echo "Checking statuses..."
           [[ "${{ needs.test.result }}" == "success" ]] || exit 1
-          [[ "${{ needs.xtask-test.result }}" == "success" ]] || exit 1
+          [[ "${{ needs.template-test.result }}" == "success" ]] || exit 1
           [[ "${{ needs.lint.result }}" == "success" ]] || exit 1
 
-  xtask-test:
+  template-test:
     name: xtask test & lint
     runs-on: ubuntu-24.04
     steps:
@@ -116,10 +116,12 @@ jobs:
         run: cargo fetch --locked
       - name: xtask test
         run: cargo nextest run -p xtask
-      - name: xtask fmt
-        run: cargo fmt -p xtask --all -- --check
+      - name: fmt
+        run: cargo fmt --all -- --check
       - name: xtask clippy
         run: cargo clippy -p xtask --all-targets -- -D warnings
+      - name: template clippy
+        run: cargo clippy --workspace --exclude xtask --all-targets -- -D warnings
 
   lint:
     name: lint
