@@ -1,3 +1,4 @@
+use crate::wgpu_renderer::renderer::{GlobalBindGroup, GlobalBindGroupLayout};
 use mygraphics_shaders::ShaderConstants;
 use wgpu::{
     ColorTargetState, ColorWrites, Device, FragmentState, FrontFace, MultisampleState,
@@ -6,17 +7,22 @@ use wgpu::{
     include_spirv,
 };
 
+#[derive(Debug, Clone)]
 pub struct MyRenderPipeline {
     pipeline: RenderPipeline,
 }
 
 impl MyRenderPipeline {
-    pub fn new(device: &Device, out_format: TextureFormat) -> anyhow::Result<Self> {
+    pub fn new(
+        device: &Device,
+        global_bind_group_layout: &GlobalBindGroupLayout,
+        out_format: TextureFormat,
+    ) -> anyhow::Result<Self> {
         let module = device.create_shader_module(include_spirv!(env!("SHADER_SPV_PATH")));
 
         let layout = device.create_pipeline_layout(&PipelineLayoutDescriptor {
             label: Some("MyRenderPipeline layout"),
-            bind_group_layouts: &[],
+            bind_group_layouts: &[&global_bind_group_layout.0],
             push_constant_ranges: &[PushConstantRange {
                 stages: ShaderStages::VERTEX_FRAGMENT,
                 range: 0..size_of::<ShaderConstants>() as u32,
@@ -60,13 +66,9 @@ impl MyRenderPipeline {
         })
     }
 
-    pub fn draw(&self, rpass: &mut RenderPass<'_>, shader_constants: &ShaderConstants) {
+    pub fn draw(&self, rpass: &mut RenderPass<'_>, global_bind_group: &GlobalBindGroup) {
         rpass.set_pipeline(&self.pipeline);
-        rpass.set_push_constants(
-            ShaderStages::VERTEX_FRAGMENT,
-            0,
-            bytemuck::bytes_of(shader_constants),
-        );
+        rpass.set_bind_group(0, &global_bind_group.0, &[]);
         rpass.draw(0..3, 0..1);
     }
 }
