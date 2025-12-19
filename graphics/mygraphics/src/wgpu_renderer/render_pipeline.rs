@@ -2,8 +2,8 @@ use mygraphics_shaders::ShaderConstants;
 use wgpu::{
     ColorTargetState, ColorWrites, Device, FragmentState, FrontFace, MultisampleState,
     PipelineLayoutDescriptor, PolygonMode, PrimitiveState, PrimitiveTopology, PushConstantRange,
-    RenderPass, RenderPipeline, RenderPipelineDescriptor, ShaderModuleDescriptorPassthrough,
-    ShaderRuntimeChecks, ShaderStages, TextureFormat, VertexState,
+    RenderPass, RenderPipeline, RenderPipelineDescriptor, ShaderStages, TextureFormat, VertexState,
+    include_spirv,
 };
 
 pub struct MyRenderPipeline {
@@ -12,27 +12,7 @@ pub struct MyRenderPipeline {
 
 impl MyRenderPipeline {
     pub fn new(device: &Device, out_format: TextureFormat) -> anyhow::Result<Self> {
-        // Workaround in wgpu 27.0.1 where the macro expansion of `include_spirv_raw!` doesn't compile
-        // see https://github.com/gfx-rs/wgpu/pull/8250
-        // let module = unsafe {
-        //     device.create_shader_module_passthrough(include_spirv_raw!(env!("SHADER_SPV_PATH")))
-        // };
-        let module = unsafe {
-            device.create_shader_module_passthrough(ShaderModuleDescriptorPassthrough {
-                label: Some(env!("SHADER_SPV_PATH")),
-                entry_point: "".to_owned(),
-                num_workgroups: (0, 0, 0),
-                runtime_checks: ShaderRuntimeChecks::unchecked(),
-                spirv: Some(wgpu::util::make_spirv_raw(include_bytes!(env!(
-                    "SHADER_SPV_PATH"
-                )))),
-                dxil: None,
-                msl: None,
-                hlsl: None,
-                glsl: None,
-                wgsl: None,
-            })
-        };
+        let module = device.create_shader_module(include_spirv!(env!("SHADER_SPV_PATH")));
 
         let layout = device.create_pipeline_layout(&PipelineLayoutDescriptor {
             label: Some("MyRenderPipeline layout"),

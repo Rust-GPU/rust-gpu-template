@@ -1,4 +1,4 @@
-use spirv_builder::{MetadataPrintout, ShaderPanicStrategy, SpirvBuilder};
+use spirv_builder::{MetadataPrintout, ShaderPanicStrategy, SpirvBuilder, SpirvMetadata};
 use std::path::PathBuf;
 
 pub fn main() -> anyhow::Result<()> {
@@ -10,10 +10,8 @@ pub fn main() -> anyhow::Result<()> {
 
     let mut builder = SpirvBuilder::new(crate_path, "spirv-unknown-vulkan1.3");
     builder.print_metadata = MetadataPrintout::DependencyOnly;
-    builder.shader_panic_strategy = ShaderPanicStrategy::DebugPrintfThenExit {
-        print_inputs: true,
-        print_backtrace: true,
-    };
+    builder.shader_panic_strategy = ShaderPanicStrategy::SilentExit;
+    builder.spirv_metadata = SpirvMetadata::Full;
 
     let compile_result = builder.build()?;
     let spv_path = compile_result.module.unwrap_single();
