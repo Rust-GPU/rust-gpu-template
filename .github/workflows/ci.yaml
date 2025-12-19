@@ -49,18 +49,19 @@ jobs:
       # figure out native target triple while we're at it
       - name: install rust-toolchain
         run: echo "TARGET=$(rustc --print host-tuple)" >> "$GITHUB_ENV"
-      - name: xtask cargo fetch --locked
-        run: cd xtask && cargo fetch --locked --target $TARGET
+      - name: cargo fetch --locked
+        run: cargo fetch --locked --target $TARGET
       - name: xtask build
-        run: cd xtask && cargo build
+        run: cargo build -p xtask
       - name: xtask generate
-        # generate all variants, since `--clean` deletes `generated/`, not generating all of them will cause changes
+        # generate all variants
+        # If this fails, the files committed don't match what should have been generated.
+        # Since `--clean` deletes `generated/`, any additional files in git are marked as removed.
         run: cargo xtask generate --clean
       - name: check generated files are up-to-date
         run: |
           git add .
           git diff --cached
-          # if this fails, the files committed don't match what should have been generated
           git diff --quiet && git diff --cached --quiet
         # no --locked, templates need to generate their lockfile
       - name: cargo fetch
@@ -104,16 +105,15 @@ jobs:
         run: echo "TARGET=$(rustc --print host-tuple)" >> "$GITHUB_ENV"
       - name: Install rustup components
         run: rustup component add rustfmt clippy
-      - name: xtask cargo fetch --locked
-        run: cd xtask && cargo fetch --locked --target $TARGET
-      - name: xtask build
-        run: cd xtask && cargo build
+      # no --target since lint needs all targets
+      - name: cargo fetch --locked
+        run: cargo fetch --locked
       - name: xtask test
-        run: cd xtask && cargo nextest run
+        run: cargo nextest run -p xtask
       - name: xtask fmt
-        run: cd xtask && cargo fmt --all -- --check
+        run: cargo fmt -p xtask --all -- --check
       - name: xtask clippy
-        run: cd xtask && cargo clippy --all-targets -- -D warnings
+        run: cargo clippy -p xtask --all-targets -- -D warnings
 
   lint:
     name: lint
@@ -133,18 +133,19 @@ jobs:
         run: echo "TARGET=$(rustc --print host-tuple)" >> "$GITHUB_ENV"
       - name: Install rustup components
         run: rustup component add rustfmt clippy
-      - name: xtask cargo fetch --locked
-        run: cd xtask && cargo fetch --locked
+      # no --target since lint needs all targets
+      - name: cargo fetch --locked
+        run: cargo fetch --locked
       - name: xtask build
-        run: cd xtask && cargo build
+        run: cargo build -p xtask
       - name: xtask generate
         run: cargo xtask generate ${{ matrix.integration }}
         # no --locked, templates need to generate their lockfile
       - name: cargo fetch
         run: cargo xtask generate ${{ matrix.integration }} -x "cargo fetch"
-      - name: fmt
+      - name: cargo fmt
         run: cargo xtask generate ${{ matrix.integration }} -x "cargo fmt --all -- --check"
-      - name: clippy
+      - name: cargo clippy
         run: cargo xtask generate ${{ matrix.integration }} -x "cargo clippy --all-targets -- -D warnings"
 
 defaults:
