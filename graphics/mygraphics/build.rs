@@ -1,5 +1,5 @@
 use cargo_gpu::Install;
-use cargo_gpu::spirv_builder::{MetadataPrintout, ShaderPanicStrategy};
+use cargo_gpu::spirv_builder::{MetadataPrintout, ShaderPanicStrategy, SpirvMetadata};
 use std::path::PathBuf;
 
 pub fn main() -> anyhow::Result<()> {
@@ -12,10 +12,8 @@ pub fn main() -> anyhow::Result<()> {
     let install = Install::from_shader_crate(crate_path.clone()).run()?;
     let mut builder = install.to_spirv_builder(crate_path, "spirv-unknown-vulkan1.3");
     builder.print_metadata = MetadataPrintout::DependencyOnly;
-    builder.shader_panic_strategy = ShaderPanicStrategy::DebugPrintfThenExit {
-        print_inputs: true,
-        print_backtrace: true,
-    };
+    builder.shader_panic_strategy = ShaderPanicStrategy::SilentExit;
+    builder.spirv_metadata = SpirvMetadata::Full;
 
     let compile_result = builder.build()?;
     let spv_path = compile_result.module.unwrap_single();
