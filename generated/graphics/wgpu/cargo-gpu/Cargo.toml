@@ -21,8 +21,8 @@ wgpu = { version = "27.0.1", default-features = false, features = ["std", "parki
 pollster = "0.4.0"
 
 # rust-gpu
-cargo-gpu = { git = "https://github.com/Rust-GPU/cargo-gpu", rev = "bf24eb6060e0c7b0013eceddd23b5d7cee68f4cc" }
-spirv-std = { git = "https://github.com/Rust-GPU/rust-gpu", rev = "6fb875068d0d35b1a81ae89b73cf7a464f8c60f7" }
+cargo-gpu = { git = "https://github.com/Rust-GPU/cargo-gpu", rev = "bb74342b90066ce8b7d50ba8e058df356a54acf4" }
+spirv-std = { git = "https://github.com/Rust-GPU/rust-gpu", rev = "96fcc9dbe475921997050c25c02a62c7a12d48e0" }
 
 # other
 glam = { version = "0.30.9", default-features = false }
