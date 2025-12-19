@@ -51,6 +51,12 @@ jobs:
         run: echo "TARGET=$(rustc --print host-tuple)" >> "$GITHUB_ENV"
       - name: cargo fetch --locked
         run: cargo fetch --locked --target $TARGET
+      - if: ${{ matrix.integration == 'cargo-gpu' }}
+        name: template build
+        run: cargo build --workspace --exclude xtask
+      - if: ${{ matrix.integration == 'cargo-gpu' }}
+        name: template test
+        run: cargo nextest run --workspace --exclude xtask --no-tests warn
       - name: xtask build
         run: cargo build -p xtask
       - name: xtask generate
