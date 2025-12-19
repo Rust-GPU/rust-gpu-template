@@ -23,7 +23,7 @@ pub fn main_fs(vtx_color: Vec3, output: &mut Vec4) {
 #[spirv(vertex)]
 pub fn main_vs(
     #[spirv(vertex_index)] vert_id: i32,
-    #[spirv(push_constant)] constants: &ShaderConstants,
+    #[spirv(descriptor_set = 0, binding = 0, storage_buffer)] constants: &ShaderConstants,
     #[spirv(position)] vtx_pos: &mut Vec4,
     vtx_color: &mut Vec3,
 ) {
