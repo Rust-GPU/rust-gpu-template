@@ -1,5 +1,6 @@
 use crate::ash_renderer::device::MyDevice;
-use crate::ash_renderer::graphics::{MyRenderPipelineManager, MyRenderer};
+use crate::ash_renderer::render_pipeline::MyRenderPipelineManager;
+use crate::ash_renderer::renderer::MyRenderer;
 use crate::ash_renderer::swapchain::MySwapchainManager;
 use crate::util::enable_debug_layer;
 use ash::util::read_spv;
@@ -12,7 +13,8 @@ use winit::{
 };
 
 pub mod device;
-pub mod graphics;
+pub mod render_pipeline;
+pub mod renderer;
 pub mod single_command_buffer;
 pub mod swapchain;
 
