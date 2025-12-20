@@ -178,6 +178,12 @@ unsafe extern "system" fn vulkan_debug_callback(
             .map_or(Cow::Borrowed(""), CStr::to_string_lossy);
 
         println!("{message_severity:?}: [{message_id_name}] : {message}");
-        vk::FALSE
+        if message_severity.contains(vk::DebugUtilsMessageSeverityFlagsEXT::WARNING)
+            | message_severity.contains(vk::DebugUtilsMessageSeverityFlagsEXT::ERROR)
+        {
+            vk::TRUE
+        } else {
+            vk::FALSE
+        }
     }
 }
