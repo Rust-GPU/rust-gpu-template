@@ -1,13 +1,14 @@
 use crate::ash_renderer::device::MyDevice;
+use crate::ash_renderer::global_descriptor_set::{GlobalDescriptorSet, GlobalDescriptorSetLayout};
 use anyhow::Context;
 use ash::vk;
-use mygraphics_shaders::ShaderConstants;
 use std::sync::Arc;
 
 /// Manages the creation and recreation of [`MyRenderPipeline`], whenever new shader code ([`Self::set_shader_code`])
 /// is submitted
 pub struct MyRenderPipelineManager {
     pub device: Arc<MyDevice>,
+    global_descriptor_set_layout: Arc<GlobalDescriptorSetLayout>,
     color_out_format: vk::Format,
     shader_code: Vec<u32>,
     pipeline: Option<MyRenderPipeline>,
@@ -22,11 +23,13 @@ pub struct MyRenderPipeline {
 impl MyRenderPipelineManager {
     pub fn new(
         device: Arc<MyDevice>,
+        global_descriptor_set_layout: Arc<GlobalDescriptorSetLayout>,
         color_out_format: vk::Format,
         shader_code: Vec<u32>,
     ) -> anyhow::Result<Self> {
         Ok(Self {
             device,
+            global_descriptor_set_layout,
             color_out_format,
             shader_code,
             pipeline: None,
@@ -63,12 +66,8 @@ impl MyRenderPipelineManager {
             )?;
 
             let pipeline_layout = self.device.create_pipeline_layout(
-                &vk::PipelineLayoutCreateInfo::default().push_constant_ranges(&[
-                    vk::PushConstantRange::default()
-                        .offset(0)
-                        .size(size_of::<ShaderConstants>() as u32)
-                        .stage_flags(vk::ShaderStageFlags::ALL),
-                ]),
+                &vk::PipelineLayoutCreateInfo::default()
+                    .set_layouts(&[self.global_descriptor_set_layout.layout]),
                 None,
             )?;
 
@@ -177,7 +176,7 @@ impl MyRenderPipeline {
         cmd: vk::CommandBuffer,
         color_out: vk::ImageView,
         extent: vk::Extent2D,
-        push_constants: ShaderConstants,
+        global_descriptor_set: &GlobalDescriptorSet,
     ) -> anyhow::Result<()> {
         unsafe {
             let render_area = vk::Rect2D {
@@ -216,12 +215,13 @@ impl MyRenderPipeline {
                 }],
             );
             device.cmd_set_scissor(cmd, 0, &[render_area]);
-            device.cmd_push_constants(
+            device.cmd_bind_descriptor_sets(
                 cmd,
+                vk::PipelineBindPoint::GRAPHICS,
                 self.pipeline_layout,
-                vk::ShaderStageFlags::ALL,
                 0,
-                bytemuck::bytes_of(&push_constants),
+                &[global_descriptor_set.set],
+                &[],
             );
             device.cmd_draw(cmd, 3, 1, 0, 0);
             device.cmd_end_rendering(cmd);

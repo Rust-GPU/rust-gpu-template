@@ -1,9 +1,10 @@
 use anyhow::{Context, anyhow};
 use ash::{ext, khr, vk};
+use gpu_allocator::vulkan::{Allocator, AllocatorCreateDesc};
 use std::borrow::Cow;
 use std::ffi::{CStr, c_char};
 use std::ops::Deref;
-use std::sync::Arc;
+use std::sync::{Arc, Mutex, MutexGuard};
 
 /// Central struct containing the Vulkan instance and device, among others
 pub struct MyDevice {
@@ -13,6 +14,7 @@ pub struct MyDevice {
     pub device: ash::Device,
     pub main_queue_family: u32,
     pub main_queue: vk::Queue,
+    allocator: Option<Mutex<Allocator>>,
     pub debug_ext_instance: ext::debug_utils::Instance,
     pub debug_ext_device: ext::debug_utils::Device,
     pub surface_ext: khr::surface::Instance,
@@ -134,6 +136,15 @@ impl MyDevice {
                 .context("create_device")?;
             let main_queue = device.get_device_queue(main_queue_family, 0);
 
+            let allocator = Allocator::new(&AllocatorCreateDesc {
+                instance: instance.clone(),
+                device: device.clone(),
+                physical_device,
+                debug_settings: Default::default(),
+                buffer_device_address: false,
+                allocation_sizes: Default::default(),
+            })?;
+
             Ok(Arc::new(Self {
                 debug_ext_device: ext::debug_utils::Device::new(&instance, &device),
                 surface_ext: khr::surface::Instance::new(&entry, &instance),
@@ -144,16 +155,22 @@ impl MyDevice {
                 device,
                 main_queue_family,
                 main_queue,
+                allocator: Some(Mutex::new(allocator)),
                 debug_ext_instance: debug_instance,
                 debug_callback,
             }))
         }
+    }
+
+    pub fn borrow_allocator(&self) -> MutexGuard<'_, Allocator> {
+        self.allocator.as_ref().unwrap().lock().unwrap()
     }
 }
 
 impl Drop for MyDevice {
     fn drop(&mut self) {
         unsafe {
+            drop(self.allocator.take());
             self.debug_ext_instance
                 .destroy_debug_utils_messenger(self.debug_callback, None);
             self.device.destroy_device(None);

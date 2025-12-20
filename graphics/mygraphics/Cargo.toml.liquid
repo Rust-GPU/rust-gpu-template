@@ -25,6 +25,7 @@ mygraphics-shaders = { path = "../mygraphics-shaders" }
 {% if api == "ash" -%}
 ash.workspace = true
 ash-window.workspace = true
+gpu-allocator.workspace = true
 {%- endif -%}
 {%- if api == "wgpu" -%}
 wgpu.workspace = true
