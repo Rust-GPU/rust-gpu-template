@@ -19,6 +19,7 @@ unexpected_cfgs = { level = "allow", check-cfg = ['cfg(target_arch, values("spir
 # API
 ash = "0.38"
 ash-window = "0.13"
+gpu-allocator = { version = "0.28.0", default-features = false, features = ["std", "vulkan"] }
 
 # rust-gpu
 cargo-gpu = { git = "https://github.com/Rust-GPU/cargo-gpu", rev = "bb74342b90066ce8b7d50ba8e058df356a54acf4" }

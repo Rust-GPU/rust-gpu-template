@@ -1,8 +1,8 @@
 [workspace]
 members = [
-    "graphics/mygraphics",
-    "graphics/mygraphics-shaders",
-    "xtask",
+	"graphics/mygraphics",
+	"graphics/mygraphics-shaders",
+	"xtask",
 ]
 resolver = "3"
 
@@ -20,6 +20,7 @@ unexpected_cfgs = { level = "allow", check-cfg = ['cfg(target_arch, values("spir
 # API
 ash = "0.38"
 ash-window = "0.13"
+gpu-allocator = { version = "0.28.0", default-features = false, features = ["std", "vulkan"] }
 wgpu = { version = "27.0.1", default-features = false, features = ["std", "parking_lot", "vulkan", "vulkan-portability", "spirv", "wgsl"] }
 pollster = "0.4.0"
 

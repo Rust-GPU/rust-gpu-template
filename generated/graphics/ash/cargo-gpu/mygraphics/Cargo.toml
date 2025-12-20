@@ -17,6 +17,7 @@ mygraphics-shaders = { path = "../mygraphics-shaders" }
 # API
 ash.workspace = true
 ash-window.workspace = true
+gpu-allocator.workspace = true
 
 # other
 raw-window-handle.workspace = true

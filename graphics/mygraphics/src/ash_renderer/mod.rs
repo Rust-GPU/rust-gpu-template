@@ -1,5 +1,4 @@
 use crate::ash_renderer::device::MyDevice;
-use crate::ash_renderer::render_pipeline::MyRenderPipelineManager;
 use crate::ash_renderer::renderer::MyRenderer;
 use crate::ash_renderer::swapchain::MySwapchainManager;
 use crate::util::enable_debug_layer;
@@ -13,6 +12,7 @@ use winit::{
 };
 
 pub mod device;
+pub mod global_descriptor_set;
 pub mod render_pipeline;
 pub mod renderer;
 pub mod single_command_buffer;
@@ -36,24 +36,20 @@ pub fn main() -> anyhow::Result<()> {
     let extensions = ash_window::enumerate_required_extensions(window.display_handle()?.as_raw())?;
     let device = MyDevice::new(extensions, enable_debug_layer())?;
     let mut swapchain = MySwapchainManager::new(device.clone(), window)?;
-    let mut renderer = MyRenderer::new(MyRenderPipelineManager::new(
-        device.clone(),
-        swapchain.surface_format.format,
-        get_shaders()?,
-    )?)?;
+    let mut renderer = MyRenderer::new(device.clone(), swapchain.surface_format.format)?;
 
     let start = std::time::Instant::now();
     let mut event_handler =
         move |event: Event<_>, event_loop_window_target: &ActiveEventLoop| match event {
             Event::AboutToWait => swapchain.render(|frame| {
                 let extent = frame.extent;
-                let push_constants = ShaderConstants {
+                let shader_constants = ShaderConstants {
                     width: extent.width,
                     height: extent.height,
                     time: start.elapsed().as_secs_f32(),
                 };
 
-                renderer.render_frame(frame, push_constants)?;
+                renderer.render_frame(frame, &shader_constants)?;
                 Ok(())
             }),
             Event::WindowEvent { event, .. } => {

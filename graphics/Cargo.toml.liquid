@@ -20,6 +20,7 @@ unexpected_cfgs = { level = "allow", check-cfg = ['cfg(target_arch, values("spir
 {% if api == "ash" -%}
 ash = "0.38"
 ash-window = "0.13"
+gpu-allocator = { version = "0.28.0", default-features = false, features = ["std", "vulkan"] }
 {%- endif -%}
 {%- if api == "wgpu" -%}
 wgpu = { version = "27.0.1", default-features = false, features = ["std", "parking_lot", "vulkan", "vulkan-portability", "spirv", "wgsl"] }
