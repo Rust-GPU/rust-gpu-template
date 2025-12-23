@@ -41,6 +41,7 @@ pub struct GlobalDescriptorSet {
     pub layout: Arc<GlobalDescriptorSetLayout>,
     pub pool: vk::DescriptorPool,
     pub set: vk::DescriptorSet,
+    destroyed: bool,
 }
 
 impl GlobalDescriptorSet {
@@ -82,19 +83,29 @@ impl GlobalDescriptorSet {
                 layout: layout.clone(),
                 pool,
                 set,
+                destroyed: false,
             })
+        }
+    }
+
+    pub fn destroy(&mut self) {
+        if !self.destroyed {
+            self.destroyed = true;
+            unsafe {
+                let device = &self.layout.device;
+                device
+                    .reset_descriptor_pool(self.pool, vk::DescriptorPoolResetFlags::empty())
+                    .ok();
+                device.destroy_descriptor_pool(self.pool, None);
+            }
         }
     }
 }
 
 impl Drop for GlobalDescriptorSet {
     fn drop(&mut self) {
-        let device = &self.layout.device;
-        unsafe {
-            device
-                .reset_descriptor_pool(self.pool, vk::DescriptorPoolResetFlags::empty())
-                .ok();
-            device.destroy_descriptor_pool(self.pool, None);
+        if !self.destroyed {
+            panic!("dropping GlobalDescriptorSet without destroying it");
         }
     }
 }

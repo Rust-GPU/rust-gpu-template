@@ -11,6 +11,7 @@ use winit::{
     event_loop::{ControlFlow, EventLoop},
 };
 
+pub mod buffer;
 pub mod device;
 pub mod global_descriptor_set;
 pub mod render_pipeline;
