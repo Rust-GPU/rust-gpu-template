@@ -23,8 +23,8 @@ gpu-allocator = { version = "0.28.0", default-features = false, features = ["std
 
 # rust-gpu
 # The version of the dependencies `spirv-builder` and `spirv-std` must match exactly!
-spirv-builder = { git = "https://github.com/Rust-GPU/rust-gpu", rev = "96fcc9dbe475921997050c25c02a62c7a12d48e0" }
-spirv-std = { git = "https://github.com/Rust-GPU/rust-gpu", rev = "96fcc9dbe475921997050c25c02a62c7a12d48e0" }
+spirv-builder = { git = "https://github.com/Rust-GPU/rust-gpu", rev = "79acad1f916d953275c93c16f006543ce18a14b1" }
+spirv-std = { git = "https://github.com/Rust-GPU/rust-gpu", rev = "79acad1f916d953275c93c16f006543ce18a14b1" }
 
 # other
 glam = { version = "0.32.0", default-features = false }

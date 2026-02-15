@@ -22,8 +22,8 @@ ash-window = "0.13"
 gpu-allocator = { version = "0.28.0", default-features = false, features = ["std", "vulkan"] }
 
 # rust-gpu
-cargo-gpu = { git = "https://github.com/Rust-GPU/cargo-gpu", rev = "bb74342b90066ce8b7d50ba8e058df356a54acf4" }
-spirv-std = { git = "https://github.com/Rust-GPU/rust-gpu", rev = "96fcc9dbe475921997050c25c02a62c7a12d48e0" }
+cargo-gpu = { git = "https://github.com/Rust-GPU/cargo-gpu", rev = "f2244a3f7f9f30998918a543075a1ce17b42af64" }
+spirv-std = { git = "https://github.com/Rust-GPU/rust-gpu", rev = "79acad1f916d953275c93c16f006543ce18a14b1" }
 
 # other
 glam = { version = "0.32.0", default-features = false }
