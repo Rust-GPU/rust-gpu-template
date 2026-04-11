@@ -1,10 +1,11 @@
 use anyhow::Context;
 use std::sync::Arc;
-use wgpu::{Adapter, Device, Surface, SurfaceError, TextureFormat, TextureView};
+use wgpu::{Adapter, CurrentSurfaceTexture, Device, Instance, Surface, TextureFormat, TextureView};
 use winit::dpi::PhysicalSize;
 use winit::window::Window;
 
 pub struct MySwapchainManager<'a> {
+    instance: Instance,
     adapter: Adapter,
     device: Device,
     window: Arc<Window>,
@@ -22,6 +23,7 @@ pub struct ActiveConfiguration {
 
 impl<'a> MySwapchainManager<'a> {
     pub fn new(
+        instance: Instance,
         adapter: Adapter,
         device: Device,
         window: Arc<Window>,
@@ -29,6 +31,7 @@ impl<'a> MySwapchainManager<'a> {
     ) -> Self {
         let caps = surface.get_capabilities(&adapter);
         Self {
+            instance,
             adapter,
             device,
             window,
@@ -48,7 +51,10 @@ impl<'a> MySwapchainManager<'a> {
         self.format
     }
 
-    pub fn render<R>(&mut self, f: impl FnOnce(TextureView) -> R) -> anyhow::Result<R> {
+    pub fn render(
+        &mut self,
+        f: impl FnOnce(TextureView) -> anyhow::Result<()>,
+    ) -> anyhow::Result<()> {
         let size = self.window.inner_size();
         if let Some(active) = &self.active {
             if active.size != size {
@@ -58,40 +64,36 @@ impl<'a> MySwapchainManager<'a> {
             self.should_recreate();
         }
 
-        const RECREATE_ATTEMPTS: u32 = 10;
-        for _ in 0..RECREATE_ATTEMPTS {
-            if self.should_recreate {
-                self.should_recreate = false;
-                self.configure_surface(size)?;
-            }
-
-            match self.surface.get_current_texture() {
-                Ok(surface_texture) => {
-                    if surface_texture.suboptimal {
-                        self.should_recreate = true;
-                    }
-                    let output_view =
-                        surface_texture
-                            .texture
-                            .create_view(&wgpu::TextureViewDescriptor {
-                                format: Some(self.format),
-                                ..wgpu::TextureViewDescriptor::default()
-                            });
-                    let r = f(output_view);
-                    surface_texture.present();
-                    return Ok(r);
-                }
-                Err(SurfaceError::Outdated | SurfaceError::Lost) => {
-                    self.should_recreate = true;
-                }
-                Err(e) => {
-                    anyhow::bail!("get_current_texture() failed: {e}")
-                }
-            };
+        if self.should_recreate {
+            self.should_recreate = false;
+            self.configure_surface(size)?;
         }
-        anyhow::bail!(
-            "looped {RECREATE_ATTEMPTS} times trying to acquire swapchain image and failed repeatedly!"
-        );
+
+        match self.surface.get_current_texture() {
+            CurrentSurfaceTexture::Success(surface_texture) => {
+                let output_view =
+                    surface_texture
+                        .texture
+                        .create_view(&wgpu::TextureViewDescriptor {
+                            format: Some(self.format),
+                            ..wgpu::TextureViewDescriptor::default()
+                        });
+                f(output_view)?;
+                surface_texture.present();
+            }
+            CurrentSurfaceTexture::Occluded | CurrentSurfaceTexture::Timeout => (),
+            CurrentSurfaceTexture::Suboptimal(_) | CurrentSurfaceTexture::Outdated => {
+                self.should_recreate();
+            }
+            CurrentSurfaceTexture::Validation => {
+                anyhow::bail!("Validation error during surface texture acquisition")
+            }
+            CurrentSurfaceTexture::Lost => {
+                self.surface = self.instance.create_surface(self.window.clone())?;
+                self.should_recreate();
+            }
+        };
+        Ok(())
     }
 
     fn configure_surface(&mut self, size: PhysicalSize<u32>) -> anyhow::Result<()> {
