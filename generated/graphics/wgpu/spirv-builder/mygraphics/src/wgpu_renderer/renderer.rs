@@ -53,6 +53,7 @@ impl MyRenderer {
             depth_stencil_attachment: None,
             timestamp_writes: None,
             occlusion_query_set: None,
+            multiview_mask: None,
         });
         self.pipeline.draw(&mut rpass, &global_bind_group);
         drop(rpass);

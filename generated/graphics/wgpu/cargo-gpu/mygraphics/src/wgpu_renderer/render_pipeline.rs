@@ -2,9 +2,8 @@ use crate::wgpu_renderer::renderer::{GlobalBindGroup, GlobalBindGroupLayout};
 use mygraphics_shaders::ShaderConstants;
 use wgpu::{
     ColorTargetState, ColorWrites, Device, FragmentState, FrontFace, MultisampleState,
-    PipelineLayoutDescriptor, PolygonMode, PrimitiveState, PrimitiveTopology, PushConstantRange,
-    RenderPass, RenderPipeline, RenderPipelineDescriptor, ShaderStages, TextureFormat, VertexState,
-    include_spirv,
+    PipelineLayoutDescriptor, PolygonMode, PrimitiveState, PrimitiveTopology, RenderPass,
+    RenderPipeline, RenderPipelineDescriptor, TextureFormat, VertexState, include_spirv,
 };
 
 #[derive(Debug, Clone)]
@@ -22,11 +21,8 @@ impl MyRenderPipeline {
 
         let layout = device.create_pipeline_layout(&PipelineLayoutDescriptor {
             label: Some("MyRenderPipeline layout"),
-            bind_group_layouts: &[&global_bind_group_layout.0],
-            push_constant_ranges: &[PushConstantRange {
-                stages: ShaderStages::VERTEX_FRAGMENT,
-                range: 0..size_of::<ShaderConstants>() as u32,
-            }],
+            bind_group_layouts: &[Some(&global_bind_group_layout.0)],
+            immediate_size: size_of::<ShaderConstants>() as u32,
         });
 
         Ok(Self {
@@ -60,7 +56,7 @@ impl MyRenderPipeline {
                         write_mask: ColorWrites::ALL,
                     })],
                 }),
-                multiview: None,
+                multiview_mask: None,
                 cache: None,
             }),
         })
