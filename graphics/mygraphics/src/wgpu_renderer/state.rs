@@ -57,7 +57,7 @@ impl State {
         let surface_format = cap.formats[0];
 
         let renderer = MyRenderer::new(device, queue, surface_format)?;
-        
+
         let state = State {
             instance,
             window,
