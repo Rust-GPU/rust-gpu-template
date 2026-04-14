@@ -9,7 +9,9 @@ pub fn main() -> anyhow::Result<()> {
         .copied()
         .collect::<PathBuf>();
 
-    let install = Install::from_shader_crate(crate_path.clone()).run()?;
+    let install = Install::from_shader_crate(crate_path.clone())
+        .within_build_script()
+        .run()?;
     let mut builder = install.to_spirv_builder(crate_path, "spirv-unknown-vulkan1.3");
     builder.build_script.defaults = true;
     builder.shader_panic_strategy = ShaderPanicStrategy::SilentExit;
