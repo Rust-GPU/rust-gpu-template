@@ -27,7 +27,7 @@ bytemuck.workspace = true
 
 [build-dependencies]
 # rust-gpu
-cargo-gpu.workspace = true
+cargo-gpu-install.workspace = true
 
 # other
 anyhow.workspace = true
