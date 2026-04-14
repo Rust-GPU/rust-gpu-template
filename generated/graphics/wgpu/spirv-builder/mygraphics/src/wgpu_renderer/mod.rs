@@ -1,9 +1,19 @@
+use crate::wgpu_renderer::renderer::MyRenderer;
 use crate::wgpu_renderer::swapchain::MySwapchainManager;
 use anyhow::Context;
 use mygraphics_shaders::ShaderConstants;
+use pollster::block_on;
 use std::sync::Arc;
-use winit::event::{Event, WindowEvent};
-use winit::event_loop::{ActiveEventLoop, ControlFlow, EventLoop};
+use std::time::Instant;
+use winit::event_loop::EventLoop;
+use winit::{
+    application::ApplicationHandler,
+    dpi::LogicalSize,
+    event::{ElementState, KeyEvent, WindowEvent},
+    event_loop::ActiveEventLoop,
+    keyboard::{Key, NamedKey},
+    window::{Window, WindowId},
+};
 
 mod render_pipeline;
 mod renderer;
@@ -11,101 +21,119 @@ mod swapchain;
 
 pub fn main() -> anyhow::Result<()> {
     env_logger::init();
-    pollster::block_on(main_inner())
+    let event_loop = EventLoop::new()?;
+    let mut app = App::default();
+    event_loop.run_app(&mut app)?;
+    Ok(())
 }
 
-pub async fn main_inner() -> anyhow::Result<()> {
-    // env_logger::init();
-    let event_loop = EventLoop::new()?;
-    // FIXME(eddyb) incomplete `winit` upgrade, follow the guides in:
-    // https://github.com/rust-windowing/winit/releases/tag/v0.30.0
-    #[allow(deprecated)]
-    let window = Arc::new(
-        event_loop.create_window(
-            winit::window::Window::default_attributes()
-                .with_title("Rust GPU - wgpu")
-                .with_inner_size(winit::dpi::LogicalSize::new(
-                    f64::from(1280),
-                    f64::from(720),
-                )),
-        )?,
-    );
+#[derive(Default)]
+pub struct App(Option<State>);
 
-    let instance = wgpu::Instance::new(wgpu::InstanceDescriptor::new_with_display_handle_from_env(
-        Box::new(event_loop.owned_display_handle()),
-    ));
-    let surface = instance.create_surface(window.clone())?;
-    let adapter =
-        wgpu::util::initialize_adapter_from_env_or_default(&instance, Some(&surface)).await?;
+impl ApplicationHandler for App {
+    fn resumed(&mut self, event_loop: &ActiveEventLoop) {
+        if self.0.is_none() {
+            self.0 = Some(block_on(State::new(event_loop)).unwrap());
+        }
+    }
 
-    let required_features = wgpu::Features::IMMEDIATES;
-    let required_limits = wgpu::Limits {
-        max_immediate_size: 128,
-        ..Default::default()
-    };
-    let (device, queue) = adapter
-        .request_device(&wgpu::DeviceDescriptor {
-            label: None,
-            required_features,
-            required_limits,
-            experimental_features: wgpu::ExperimentalFeatures::disabled(),
-            memory_hints: wgpu::MemoryHints::Performance,
-            trace: Default::default(),
-        })
-        .await
-        .context("Failed to create device")?;
+    fn window_event(&mut self, event_loop: &ActiveEventLoop, id: WindowId, event: WindowEvent) {
+        let state = self.0.as_mut().unwrap();
+        state.window_event(event_loop, id, event).unwrap();
+    }
+}
 
-    let mut swapchain = MySwapchainManager::new(
-        instance.clone(),
-        adapter.clone(),
-        device.clone(),
-        window,
-        surface,
-    );
-    let renderer = renderer::MyRenderer::new(device, queue, swapchain.format())?;
+struct State {
+    start: Instant,
+    window: Arc<Window>,
+    renderer: MyRenderer,
+    swapchain: MySwapchainManager<'static>,
+}
 
-    let start = std::time::Instant::now();
-    let mut event_handler =
-        move |event: Event<_>, event_loop_window_target: &ActiveEventLoop| match event {
-            Event::AboutToWait => swapchain.render(|render_target| {
-                renderer.render(
-                    &ShaderConstants {
-                        time: start.elapsed().as_secs_f32(),
-                        width: render_target.texture().width(),
-                        height: render_target.texture().height(),
-                    },
-                    render_target,
-                )
-            }),
-            Event::WindowEvent { event, .. } => {
-                match event {
-                    WindowEvent::KeyboardInput {
-                        event:
-                            winit::event::KeyEvent {
-                                logical_key:
-                                    winit::keyboard::Key::Named(winit::keyboard::NamedKey::Escape),
-                                state: winit::event::ElementState::Pressed,
-                                ..
-                            },
-                        ..
-                    }
-                    | WindowEvent::CloseRequested => event_loop_window_target.exit(),
-                    WindowEvent::Resized(_) => swapchain.should_recreate(),
-                    _ => {}
-                }
-                Ok(())
-            }
-            _ => {
-                event_loop_window_target.set_control_flow(ControlFlow::Poll);
-                Ok(())
-            }
+impl State {
+    async fn new(event_loop: &ActiveEventLoop) -> anyhow::Result<Self> {
+        let window = Arc::new(
+            event_loop.create_window(
+                Window::default_attributes()
+                    .with_title("Rust GPU - wgpu")
+                    .with_inner_size(LogicalSize::new(1280, 720)),
+            )?,
+        );
+
+        let instance =
+            wgpu::Instance::new(wgpu::InstanceDescriptor::new_with_display_handle_from_env(
+                Box::new(event_loop.owned_display_handle()),
+            ));
+        let surface = instance.create_surface(window.clone())?;
+        let adapter =
+            wgpu::util::initialize_adapter_from_env_or_default(&instance, Some(&surface)).await?;
+
+        let required_features = wgpu::Features::IMMEDIATES;
+        let required_limits = wgpu::Limits {
+            max_immediate_size: 128,
+            ..Default::default()
         };
+        let (device, queue) = adapter
+            .request_device(&wgpu::DeviceDescriptor {
+                label: None,
+                required_features,
+                required_limits,
+                experimental_features: wgpu::ExperimentalFeatures::disabled(),
+                memory_hints: wgpu::MemoryHints::Performance,
+                trace: Default::default(),
+            })
+            .await
+            .context("Failed to create device")?;
 
-    // FIXME(eddyb) incomplete `winit` upgrade, follow the guides in:
-    // https://github.com/rust-windowing/winit/releases/tag/v0.30.0
-    #[allow(deprecated)]
-    event_loop.run(move |event, event_loop_window_target| {
-        event_handler(event, event_loop_window_target).unwrap();
-    })?;
-    Ok(())
+        let swapchain = MySwapchainManager::new(
+            instance.clone(),
+            adapter.clone(),
+            device.clone(),
+            window.clone(),
+            surface,
+        );
+        let renderer = MyRenderer::new(device, queue, swapchain.format())?;
+        Ok(Self {
+            start: Instant::now(),
+            window,
+            swapchain,
+            renderer,
+        })
+    }
+
+    fn window_event(
+        &mut self,
+        event_loop: &ActiveEventLoop,
+        _id: WindowId,
+        event: WindowEvent,
+    ) -> anyhow::Result<()> {
+        match event {
+            WindowEvent::RedrawRequested => {
+                self.swapchain.render(|render_target| {
+                    self.renderer.render(
+                        &ShaderConstants {
+                            time: self.start.elapsed().as_secs_f32(),
+                            width: render_target.texture().width(),
+                            height: render_target.texture().height(),
+                        },
+                        render_target,
+                    )
+                })?;
+                self.window.request_redraw();
+            }
+            WindowEvent::KeyboardInput {
+                event:
+                    KeyEvent {
+                        logical_key: Key::Named(NamedKey::Escape),
+                        state: ElementState::Pressed,
+                        ..
+                    },
+                ..
+            }
+            | WindowEvent::CloseRequested => event_loop.exit(),
+            WindowEvent::Resized(_) => self.swapchain.should_recreate(),
+            _ => (),
+        }
+        Ok(())
+    }
 }
