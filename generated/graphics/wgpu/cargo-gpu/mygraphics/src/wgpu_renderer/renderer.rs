@@ -28,7 +28,11 @@ impl MyRenderer {
         })
     }
 
-    pub fn render(&self, shader_constants: &ShaderConstants, output: TextureView) {
+    pub fn render(
+        &self,
+        shader_constants: &ShaderConstants,
+        output: TextureView,
+    ) -> anyhow::Result<()> {
         let global_bind_group = self
             .global_bind_group_layout
             .create(&self.device, shader_constants);
@@ -53,11 +57,13 @@ impl MyRenderer {
             depth_stencil_attachment: None,
             timestamp_writes: None,
             occlusion_query_set: None,
+            multiview_mask: None,
         });
         self.pipeline.draw(&mut rpass, &global_bind_group);
         drop(rpass);
 
         self.queue.submit(std::iter::once(cmd.finish()));
+        Ok(())
     }
 }
 
