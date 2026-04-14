@@ -22,8 +22,8 @@ pollster = "0.4.0"
 
 # rust-gpu
 # The version of the dependencies `spirv-builder` and `spirv-std` must match exactly!
-spirv-builder = { git = "https://github.com/Rust-GPU/rust-gpu", rev = "30896871ba00e668029ccb724f1438202b284708" }
-spirv-std = { git = "https://github.com/Rust-GPU/rust-gpu", rev = "30896871ba00e668029ccb724f1438202b284708" }
+spirv-builder = { git = "https://github.com/Rust-GPU/rust-gpu", rev = "8494942c0be705049514c2515761da7ef24fcbeb" }
+spirv-std = { git = "https://github.com/Rust-GPU/rust-gpu", rev = "8494942c0be705049514c2515761da7ef24fcbeb" }
 
 # other
 glam = { version = "0.32.0", default-features = false }
