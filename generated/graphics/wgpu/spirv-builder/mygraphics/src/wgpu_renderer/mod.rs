@@ -31,14 +31,16 @@ pub async fn main_inner() -> anyhow::Result<()> {
         )?,
     );
 
-    let instance = wgpu::Instance::new(&wgpu::InstanceDescriptor::from_env_or_default());
+    let instance = wgpu::Instance::new(wgpu::InstanceDescriptor::new_with_display_handle_from_env(
+        Box::new(event_loop.owned_display_handle()),
+    ));
     let surface = instance.create_surface(window.clone())?;
     let adapter =
         wgpu::util::initialize_adapter_from_env_or_default(&instance, Some(&surface)).await?;
 
-    let required_features = wgpu::Features::PUSH_CONSTANTS;
+    let required_features = wgpu::Features::IMMEDIATES;
     let required_limits = wgpu::Limits {
-        max_push_constant_size: 128,
+        max_immediate_size: 128,
         ..Default::default()
     };
     let (device, queue) = adapter
@@ -53,7 +55,13 @@ pub async fn main_inner() -> anyhow::Result<()> {
         .await
         .context("Failed to create device")?;
 
-    let mut swapchain = MySwapchainManager::new(adapter.clone(), device.clone(), window, surface);
+    let mut swapchain = MySwapchainManager::new(
+        instance.clone(),
+        adapter.clone(),
+        device.clone(),
+        window,
+        surface,
+    );
     let renderer = renderer::MyRenderer::new(device, queue, swapchain.format())?;
 
     let start = std::time::Instant::now();
@@ -67,7 +75,7 @@ pub async fn main_inner() -> anyhow::Result<()> {
                         height: render_target.texture().height(),
                     },
                     render_target,
-                );
+                )
             }),
             Event::WindowEvent { event, .. } => {
                 match event {
