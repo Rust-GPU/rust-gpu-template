@@ -40,7 +40,7 @@ impl SwapchainSync {
 /// Intentionally kept simple and does not offer support for multiple frames in flight
 pub struct MySwapchainManager {
     pub device: Arc<MyDevice>,
-    pub window: winit::window::Window,
+    pub window: Arc<winit::window::Window>,
     pub surface: vk::SurfaceKHR,
     pub surface_format: vk::SurfaceFormatKHR,
     pub surface_capabilities: vk::SurfaceCapabilitiesKHR,
@@ -61,7 +61,7 @@ struct ActiveSwapchain {
 }
 
 impl MySwapchainManager {
-    pub fn new(device: Arc<MyDevice>, window: winit::window::Window) -> anyhow::Result<Self> {
+    pub fn new(device: Arc<MyDevice>, window: Arc<winit::window::Window>) -> anyhow::Result<Self> {
         unsafe {
             let surface_ext = &device.surface_ext;
 
