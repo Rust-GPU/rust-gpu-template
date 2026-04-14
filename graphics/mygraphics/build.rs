@@ -1,5 +1,5 @@
-use cargo_gpu::install::Install;
-use cargo_gpu::spirv_builder::{ShaderPanicStrategy, SpirvMetadata};
+use cargo_gpu_install::install::Install;
+use cargo_gpu_install::spirv_builder::{ShaderPanicStrategy, SpirvMetadata};
 use std::path::PathBuf;
 
 pub fn main() -> anyhow::Result<()> {

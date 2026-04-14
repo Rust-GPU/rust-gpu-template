@@ -2,8 +2,8 @@
 use spirv_builder::{ShaderPanicStrategy, SpirvBuilder, SpirvMetadata};
 {% endif -%}
 {% if integration == "cargo-gpu" -%}
-use cargo_gpu::install::Install;
-use cargo_gpu::spirv_builder::{ShaderPanicStrategy, SpirvMetadata};
+use cargo_gpu_install::install::Install;
+use cargo_gpu_install::spirv_builder::{ShaderPanicStrategy, SpirvMetadata};
 {% endif -%}
 use std::path::PathBuf;
 
