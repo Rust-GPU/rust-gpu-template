@@ -22,8 +22,8 @@ wgpu = { version = "29.0.1", default-features = false, features = ["std", "parki
 pollster = "0.4.0"
 
 # rust-gpu
-cargo-gpu-install = { git = "https://github.com/Rust-GPU/rust-gpu", rev = "8494942c0be705049514c2515761da7ef24fcbeb" }
-spirv-std = { git = "https://github.com/Rust-GPU/rust-gpu", rev = "8494942c0be705049514c2515761da7ef24fcbeb" }
+cargo-gpu-install = { version = "0.10.0-alpha.1" }
+spirv-std = { version = "0.10.0-alpha.1" }
 
 # other
 glam = { version = "0.32.0", default-features = false }
