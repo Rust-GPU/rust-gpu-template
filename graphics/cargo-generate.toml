@@ -6,6 +6,9 @@ exclude = ["target", "mygraphics/src/bin"]
 api = { prompt = "What API?", choices = ["wgpu", "ash"], default = "wgpu", type = "string" }
 integration = { prompt = "How to integrate rust-gpu?", choices = ["cargo-gpu", "spirv-builder"], default = "cargo-gpu", type = "string" }
 
+[conditional.'api == "wgpu"'.placeholders]
+target = { promt = "When to transpile to wgsl?", choices = ["compile-time", "runtime"], default = "compile-time", type = "string" }
+
 [conditional.'integration != "spirv-builder"']
 ignore = [ "rust-toolchain.toml" ]
 
