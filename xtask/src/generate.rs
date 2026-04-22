@@ -136,7 +136,14 @@ struct Filters<'a> {
 struct Template {
     name: String,
     template_dir: PathBuf,
-    placeholders: IndexMap<String, Vec<String>>,
+    placeholders: IndexMap<String, Placeholder>,
+}
+
+#[derive(Clone, Debug)]
+struct Placeholder {
+    name: String,
+    choices: Vec<String>,
+    conditional: Option<(String, String)>,
 }
 
 #[derive(Copy, Clone, Eq, PartialEq)]
@@ -192,7 +199,11 @@ impl Template {
                             Ok(c.to_string())
                         })
                         .collect::<anyhow::Result<Vec<_>>>()?;
-                Ok((p, choices))
+                Ok((p.clone(), Placeholder {
+                    name: p,
+                    choices,
+                    conditional: None,
+                }))
             })
             .collect::<anyhow::Result<IndexMap<_, _>>>()?;
         Ok(Self {
