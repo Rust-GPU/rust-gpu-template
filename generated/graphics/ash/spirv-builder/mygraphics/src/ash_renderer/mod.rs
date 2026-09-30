@@ -1,7 +1,6 @@
 use crate::ash_renderer::device::MyDevice;
 use crate::ash_renderer::renderer::MyRenderer;
 use crate::ash_renderer::swapchain::MySwapchainManager;
-use crate::util::enable_debug_layer;
 use ash::util::read_spv;
 use glam::Vec2;
 use mygraphics_shaders::ShaderConstants;
@@ -118,4 +117,8 @@ pub fn get_shaders() -> anyhow::Result<Vec<u32>> {
     // set in the build script
     const SPV_BYTES: &[u8] = include_bytes!(env!("SHADER_SPV_PATH"));
     Ok(read_spv(&mut std::io::Cursor::new(SPV_BYTES))?)
+}
+
+pub fn enable_debug_layer() -> bool {
+    std::env::var("DEBUG_LAYER").is_ok_and(|e| !(e == "0" || e == "false"))
 }
