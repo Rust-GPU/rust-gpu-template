@@ -89,6 +89,7 @@ impl State {
             instance.clone(),
             adapter.clone(),
             device.clone(),
+            queue.clone(),
             window.clone(),
             surface,
         );

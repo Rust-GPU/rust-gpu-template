@@ -1,6 +1,8 @@
 use anyhow::Context;
 use std::sync::Arc;
-use wgpu::{Adapter, CurrentSurfaceTexture, Device, Instance, Surface, TextureFormat, TextureView};
+use wgpu::{
+    Adapter, CurrentSurfaceTexture, Device, Instance, Queue, Surface, TextureFormat, TextureView,
+};
 use winit::dpi::PhysicalSize;
 use winit::window::Window;
 
@@ -8,6 +10,7 @@ pub struct MySwapchainManager<'a> {
     instance: Instance,
     adapter: Adapter,
     device: Device,
+    queue: Queue,
     window: Arc<Window>,
     surface: Surface<'a>,
     format: TextureFormat,
@@ -26,6 +29,7 @@ impl<'a> MySwapchainManager<'a> {
         instance: Instance,
         adapter: Adapter,
         device: Device,
+        queue: Queue,
         window: Arc<Window>,
         surface: Surface<'a>,
     ) -> Self {
@@ -34,6 +38,7 @@ impl<'a> MySwapchainManager<'a> {
             instance,
             adapter,
             device,
+            queue,
             window,
             surface,
             format: caps.formats[0],
@@ -79,7 +84,7 @@ impl<'a> MySwapchainManager<'a> {
                             ..wgpu::TextureViewDescriptor::default()
                         });
                 f(output_view)?;
-                surface_texture.present();
+                self.queue.present(surface_texture);
             }
             CurrentSurfaceTexture::Occluded | CurrentSurfaceTexture::Timeout => (),
             CurrentSurfaceTexture::Suboptimal(_) | CurrentSurfaceTexture::Outdated => {
