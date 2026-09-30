@@ -23,8 +23,8 @@ ash-window = "0.13"
 gpu-allocator = { version = "0.28.0", default-features = false, features = ["std", "vulkan"] }
 {%- endif -%}
 {%- if api == "wgpu" -%}
-wgpu = { version = "29.0.1", default-features = false, features = ["std", "parking_lot", "vulkan", "vulkan-portability", "spirv", "wgsl"] }
-pollster = "0.4.0"
+wgpu = { version = "30.0.1", default-features = false, features = ["std", "parking_lot", "vulkan", "vulkan-portability", "spirv", "wgsl"] }
+pollster = "1.0.1"
 {%- endif %}
 
 # rust-gpu

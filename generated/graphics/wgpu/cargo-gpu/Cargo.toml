@@ -17,8 +17,8 @@ unexpected_cfgs = { level = "allow", check-cfg = ['cfg(target_arch, values("spir
 
 [workspace.dependencies]
 # API
-wgpu = { version = "29.0.1", default-features = false, features = ["std", "parking_lot", "vulkan", "vulkan-portability", "spirv", "wgsl"] }
-pollster = "0.4.0"
+wgpu = { version = "30.0.1", default-features = false, features = ["std", "parking_lot", "vulkan", "vulkan-portability", "spirv", "wgsl"] }
+pollster = "1.0.1"
 
 # rust-gpu
 # While `cargo-gpu` is backwards compatible with older rust-gpu versions, easiest is to just match the versions exactly.
