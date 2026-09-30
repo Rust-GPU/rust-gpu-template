@@ -13,6 +13,8 @@ edition = "2024"
 license = "MIT"
 repository = ""
 
+
+
 [workspace.dependencies]
 # API
 ash = "0.38"
@@ -25,9 +27,11 @@ pollster = "1.0.1"
 cargo-gpu-install = { version = "0.10.0" }
 spirv-std = { version = "0.10.0" }
 
-# other
-glam = { version = "0.33.11", default-features = false }
+# math libraries
+glam = { version = "0.33.11", default-features = false, features = ["bytemuck"] }
 bytemuck = { version = "1.24.0", features = ["derive"] }
+
+# other
 raw-window-handle = "0.6.2"
 winit = "0.30.0"
 env_logger = "0.11.8"

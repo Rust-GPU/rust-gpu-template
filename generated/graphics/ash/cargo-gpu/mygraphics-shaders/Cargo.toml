@@ -6,7 +6,12 @@ edition = "2024"
 [lints]
 workspace = true
 
+
+
 [dependencies]
+# rust-gpu
 spirv-std.workspace = true
+
+# math libraries
 glam.workspace = true
 bytemuck.workspace = true
