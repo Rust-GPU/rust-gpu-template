@@ -15,6 +15,8 @@ repository = ""
 [workspace.lints.rust]
 unexpected_cfgs = { level = "allow", check-cfg = ['cfg(target_arch, values("spirv"))'] }
 
+
+
 [workspace.dependencies]
 # API
 {% if api == "ash" -%}
@@ -38,15 +40,18 @@ cargo-gpu-install = { version = "0.10.0" }
 {% endif -%}
 spirv-std = { version = "0.10.0" }
 
-# other
-glam = { version = "0.33.11", default-features = false }
+# math libraries
+glam = { version = "0.33.11", default-features = false, features = ["bytemuck"] }
 bytemuck = { version = "1.24.0", features = ["derive"] }
+
+# other
 raw-window-handle = "0.6.2"
 winit = "0.30.0"
 env_logger = "0.11.8"
 anyhow = "1.0.98"
 
-{% if integration == "spirv-builder" -%}
+{% if integration == "spirv-builder" %}
+
 # Optimize build scripts, copied from rust-gpu's repo
 # Enable incremental by default in release mode.
 [profile.release]

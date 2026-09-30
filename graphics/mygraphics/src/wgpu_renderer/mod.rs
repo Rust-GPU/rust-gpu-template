@@ -1,6 +1,7 @@
 use crate::wgpu_renderer::renderer::MyRenderer;
 use crate::wgpu_renderer::swapchain::MySwapchainManager;
 use anyhow::Context;
+use glam::Vec2;
 use mygraphics_shaders::ShaderConstants;
 use pollster::block_on;
 use std::sync::Arc;
@@ -114,8 +115,8 @@ impl State {
                     self.renderer.render(
                         &ShaderConstants {
                             time: self.start.elapsed().as_secs_f32(),
-                            width: render_target.texture().width(),
-                            height: render_target.texture().height(),
+                            speed: 0.2,
+                            offset: Vec2::new(0., 0.),
                         },
                         render_target,
                     )

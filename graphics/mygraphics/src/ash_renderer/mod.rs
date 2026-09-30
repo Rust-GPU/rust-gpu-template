@@ -3,6 +3,7 @@ use crate::ash_renderer::renderer::MyRenderer;
 use crate::ash_renderer::swapchain::MySwapchainManager;
 use crate::util::enable_debug_layer;
 use ash::util::read_spv;
+use glam::Vec2;
 use mygraphics_shaders::ShaderConstants;
 use raw_window_handle::HasDisplayHandle;
 use std::sync::Arc;
@@ -87,11 +88,10 @@ impl State {
         match event {
             WindowEvent::RedrawRequested => {
                 self.swapchain.render(|frame| {
-                    let extend = frame.extent;
                     let shader_constants = ShaderConstants {
-                        width: extend.width,
-                        height: extend.height,
                         time: self.start.elapsed().as_secs_f32(),
+                        speed: 0.2,
+                        offset: Vec2::new(0., 0.),
                     };
                     self.renderer.render_frame(frame, &shader_constants)
                 })?;
