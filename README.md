@@ -4,27 +4,21 @@ Examples on how to setup rust-gpu with various APIs, use-cases and integration p
 
 ## Generating a project
 
-Install cargo-generate
+Install our `cargo gpu` cli, if you haven't already:
 
-```sh
-cargo install cargo-generate
+```shell
+cargo install cargo-gpu
 ```
 
-or if you have [no time, use cargo-binstall](https://github.com/cargo-bins/cargo-binstall):
+Then generate a rust-gpu project with:
 
-```sh
-cargo binstall cargo-generate
+```shell
+cargo gpu generate
 ```
 
-Then generate this template and answer the questions to configure it: (more details below)
+(This subcommand is merely a wrapper around [`cargo-generate`](https://crates.io/crates/cargo-generate/))
 
-```sh
-cargo generate --git https://github.com/Rust-GPU/rust-gpu-template
-```
-
-If you don't want to install `cargo generate`, you can also go to the
-[
-`generated/` folder](https://github.com/Rust-GPU/rust-gpu-template/tree/main/generated/) and navigate its subfolders, each level corresponding to the questions below.
+If you don't want to install `cargo generate`, you can also go to the [`generated/` folder](https://github.com/Rust-GPU/rust-gpu-template/tree/main/generated/) and navigate its subfolders, each level corresponding to the questions below.
 
 ## Questions
 
