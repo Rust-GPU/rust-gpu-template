@@ -8,13 +8,15 @@ pub fn main() -> anyhow::Result<()> {
         .copied()
         .collect::<PathBuf>();
 
-    let mut builder = SpirvBuilder::new(crate_path, "spirv-unknown-vulkan1.3");
+    let target = "spirv-unknown-naga-wgsl";
+    let mut builder = SpirvBuilder::new(crate_path, target);
     builder.build_script.defaults = true;
     builder.shader_panic_strategy = ShaderPanicStrategy::SilentExit;
     builder.spirv_metadata = SpirvMetadata::Full;
 
     let compile_result = builder.build()?;
-    let spv_path = compile_result.module.unwrap_single();
-    println!("cargo::rustc-env=SHADER_SPV_PATH={}", spv_path.display());
+    let shader_path = compile_result.module.unwrap_single();
+
+    println!("cargo::rustc-env=SHADER_WGSL_PATH={}", shader_path.display());
     Ok(())
 }
