@@ -78,7 +78,7 @@ impl MyBuffer {
 impl Drop for MyBuffer {
     fn drop(&mut self) {
         if !self.destroyed {
-            panic!("dropping Buffer {} without destroying it", &self.name);
+            panic!("dropping Buffer {} without destroying it", self.name);
         }
     }
 }
