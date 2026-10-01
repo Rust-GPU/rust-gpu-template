@@ -3,7 +3,7 @@ use mygraphics_shaders::ShaderConstants;
 use wgpu::{
     ColorTargetState, ColorWrites, Device, FragmentState, FrontFace, MultisampleState,
     PipelineLayoutDescriptor, PolygonMode, PrimitiveState, PrimitiveTopology, RenderPass,
-    RenderPipeline, RenderPipelineDescriptor, TextureFormat, VertexState, include_spirv,
+    RenderPipeline, RenderPipelineDescriptor, TextureFormat, VertexState, include_wgsl,
 };
 
 #[derive(Debug, Clone)]
@@ -17,7 +17,7 @@ impl MyRenderPipeline {
         global_bind_group_layout: &GlobalBindGroupLayout,
         out_format: TextureFormat,
     ) -> anyhow::Result<Self> {
-        let module = device.create_shader_module(include_spirv!(env!("SHADER_SPV_PATH")));
+        let module = device.create_shader_module(include_wgsl!(env!("SHADER_WGSL_PATH")));
 
         let layout = device.create_pipeline_layout(&PipelineLayoutDescriptor {
             label: Some("MyRenderPipeline layout"),
