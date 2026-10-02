@@ -25,8 +25,8 @@ gpu-allocator = { version = "0.28.0", default-features = false, features = ["std
 
 # rust-gpu
 # While `cargo-gpu` is backwards compatible with older rust-gpu versions, easiest is to just match the versions exactly.
-cargo-gpu-install = { version = "0.10.0" }
-spirv-std = { version = "0.10.0" }
+cargo-gpu-install = { version = "0.10.0", git = "https://github.com/Rust-GPU/rust-gpu.git", rev = "42d2720c67c3c643bf90a6faa8380bd6c6b5fb33" }
+spirv-std = { version = "0.10.0", git = "https://github.com/Rust-GPU/rust-gpu.git", rev = "42d2720c67c3c643bf90a6faa8380bd6c6b5fb33" }
 
 # math libraries
 glam = { version = "0.33.11", default-features = false, features = ["bytemuck"] }
