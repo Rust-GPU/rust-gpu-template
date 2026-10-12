@@ -7,17 +7,17 @@ use glam::{Vec2, Vec3, Vec4, vec2, vec3};
 use spirv_std::num_traits::Float;
 use spirv_std::spirv;
 
+#[spirv(fragment)]
+pub fn main_fs(vtx_color: Vec3, output: &mut Vec4) {
+    *output = Vec4::from((vtx_color, 1.));
+}
+
 #[derive(Copy, Clone, Pod, Zeroable)]
 #[repr(C)]
 pub struct ShaderConstants {
     pub time: f32,
     pub speed: f32,
     pub offset: Vec2,
-}
-
-#[spirv(fragment)]
-pub fn main_fs(vtx_color: Vec3, output: &mut Vec4) {
-    *output = Vec4::from((vtx_color, 1.));
 }
 
 #[spirv(vertex)]
