@@ -22,8 +22,8 @@ pollster.workspace = true
 env_logger.workspace = true
 
 # math libraries
-glam = { version = "0.33.11", default-features = false, features = ["bytemuck"] }
-bytemuck = { version = "1.24.0", features = ["derive"] }
+glam.workspace = true
+bytemuck.workspace = true
 
 # other
 raw-window-handle.workspace = true
