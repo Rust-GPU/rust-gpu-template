@@ -24,11 +24,11 @@ wgpu = { version = "30.0.1", default-features = false, features = ["std", "parki
 pollster = "1.0.1"
 
 # rust-gpu
-cargo-gpu-install = { version = "0.10.0" }
-spirv-std = { version = "0.10.0" }
+cargo-gpu-install = { version = "0.11.0" }
+spirv-std = { version = "0.11.0" }
 
 # math libraries
-glam = { version = "0.33.11", default-features = false, features = ["bytemuck"] }
+glam = { version = "0.34", default-features = false, features = ["bytemuck"] }
 bytemuck = { version = "1.24.0", features = ["derive"] }
 
 # other
